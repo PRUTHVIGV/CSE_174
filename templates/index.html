@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Cattle Breed Recognition</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 30px; }
+        .upload-area { border: 3px dashed #667eea; border-radius: 15px; padding: 60px 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .upload-area:hover { background: #f8f9ff; border-color: #764ba2; }
+        .upload-icon { font-size: 4em; color: #667eea; margin-bottom: 20px; }
+        .upload-text { font-size: 1.2em; color: #666; margin-bottom: 10px; }
+        #fileInput { display: none; }
+        .results { margin-top: 40px; display: none; }
+        .prediction { background: #f8f9ff; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #667eea; }
+        .prediction.top { background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); border-left-width: 8px; }
+        .breed-name { font-size: 1.5em; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .confidence { font-size: 1.2em; color: #667eea; font-weight: bold; }
+        .breed-info { margin-top: 10px; color: #666; line-height: 1.6; }
+        .loading { display: none; text-align: center; margin-top: 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .breeds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .breed-card { background: #f8f9ff; padding: 20px; border-radius: 10px; text-align: center; transition: transform 0.2s; }
+        .breed-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .breed-card h3 { color: #667eea; margin-bottom: 8px; font-size: 1.2em; }
+        .breed-card p { color: #666; font-size: 0.9em; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐄 Indian Cattle Breed Recognition</h1>
+            <p>AI-powered breed identification system</p>
+        </div>
+        
+        <div class="card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Click to upload or drag and drop</div>
+                <div style="color: #999; font-size: 0.9em;">Supports: JPG, PNG (Max 16MB)</div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: #666;">Analyzing image...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <h2 style="color: #333; margin-bottom: 20px;">Prediction Results</h2>
+                <div id="predictions"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="color: #333; margin-bottom: 20px;">Supported Indian Breeds</h2>
+            <div class="breeds-grid">
+                {% for breed, info in breeds.items() %}
+                <div class="breed-card">
+                    <h3>{{ breed.replace('_', ' ') }}</h3>
+                    <p><strong>{{ info.hindi }}</strong></p>
+                    <p>{{ info.origin }}</p>
+                    <p><strong>{{ info.milk_yield }}</strong></p>
+                    <p style="color: #667eea;">{{ info.type }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const predictions = document.getElementById('predictions');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFile);
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFile();
+            }
+        });
+
+        function handleFile() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            results.style.display = 'none';
+            loading.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.success) {
+                    displayResults(data);
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                alert('Error: ' + err.message);
+            });
+        }
+
+        function displayResults(data) {
+            predictions.innerHTML = '';
+
+            data.predictions.forEach((pred, idx) => {
+                const div = document.createElement('div');
+                div.className = 'prediction' + (idx === 0 ? ' top' : '');
+                div.innerHTML = `
+                    <div class="breed-name">${pred.breed.replace('_', ' ')}</div>
+                    <div class="confidence">${pred.confidence}% confidence</div>
+                    <div class="breed-info">
+                        <strong>Hindi:</strong> ${pred.info.hindi}<br>
+                        <strong>Origin:</strong> ${pred.info.origin}<br>
+                        <strong>Type:</strong> ${pred.info.type}<br>
+                        <strong>Milk Yield:</strong> ${pred.info.milk_yield}
+                    </div>
+                `;
+                predictions.appendChild(div);
+            });
+
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
