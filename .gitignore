@@ -38,3 +38,4 @@ dataset/
 uploads/
 *.db
 govansh_users.db
+users.json

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}GOVANSH{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <div class="bg"></div>
+    <div class="container">
+      <nav class="top-nav">
+        <a class="nav-logo" href="{{ url_for('core.index') }}">GOVANSH</a>
+        <a href="{{ url_for('core.index') }}">Identify</a>
+        <a href="{{ url_for('core.explore') }}">Explorer</a>
+        <a href="{{ url_for('core.compare') }}">Compare</a>
+        <a href="{{ url_for('core.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('core.api_breeds') }}" target="_blank">API</a>
+        <span class="spacer"></span>
+        <button class="theme-toggle" id="themeToggle" type="button">Dark Mode</button>
+        <span id="navAuth"></span>
+      </nav>
+
+      {% block content %}{% endblock %}
+
+      <footer class="footer">
+        <div class="footer-brand">GOVANSH</div>
+        <div class="footer-sub">AI-Powered Indian Cattle & Buffalo Breed Recognition</div>
+        <div class="footer-sub2">Smart India Hackathon • SDG‑04 (Quality Education)</div>
+      </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
+

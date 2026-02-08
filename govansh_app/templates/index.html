@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}GOVANSH | Identify{% endblock %}
+
+{% block content %}
+  <header class="hero">
+    <div class="badge">SMART INDIA HACKATHON</div>
+    <h1 class="brand">GOVANSH</h1>
+    <p class="tagline">AI‑Powered <span>Indian Cattle & Buffalo</span> Breed Recognition</p>
+    <div class="stats">
+      <div class="stat"><div class="v">10</div><div class="k">Breeds</div></div>
+      <div class="stat"><div class="v">CNN</div><div class="k">Model</div></div>
+      <div class="stat"><div class="v">&lt;2s</div><div class="k">Response</div></div>
+      <div class="stat"><div class="v" id="myPred">0</div><div class="k">My Predictions</div></div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="card-title"><span class="icon">📷</span> Upload Livestock Image</div>
+      <div class="upload" id="uploadArea">
+        <div class="upload-icon">🐄</div>
+        <div class="upload-text">Drop Image Here or Click to Upload</div>
+        <div class="upload-hint">JPG/PNG/JPEG • Max 16MB</div>
+        <input id="imageInput" type="file" accept="image/*" hidden />
+      </div>
+
+      <div class="preview" id="preview" style="display:none;">
+        <img id="previewImg" alt="preview" />
+        <button class="btn primary" id="analyzeBtn" type="button">IDENTIFY BREED</button>
+      </div>
+
+      <div class="loading" id="loading" style="display:none;">
+        <div class="spinner"></div>
+        <div class="loading-title">Analyzing Image…</div>
+        <div class="loading-sub">Processing breed characteristics</div>
+      </div>
+    </section>
+
+    <section class="card" id="resultCard" style="display:none;">
+      <div class="card-title"><span class="icon">🎯</span> Recognition Results</div>
+
+      <div class="result-head">
+        <div>
+          <div class="breed" id="breedName">-</div>
+          <div class="breed-hi" id="breedHindi">-</div>
+        </div>
+        <div class="conf">
+          <div class="conf-val" id="confVal">-</div>
+          <div class="conf-label">Confidence</div>
+        </div>
+      </div>
+
+      <div class="row-actions">
+        <button class="btn ghost" id="downloadBtn" type="button">Download Report</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="details">Characteristics</button>
+        <button class="tab" data-tab="production">Production</button>
+        <button class="tab" data-tab="care">Care</button>
+        <button class="tab" data-tab="top5">Top‑5</button>
+      </div>
+
+      <div class="panel active" id="tab-overview"></div>
+      <div class="panel" id="tab-details"></div>
+      <div class="panel" id="tab-production"></div>
+      <div class="panel" id="tab-care"></div>
+      <div class="panel" id="tab-top5"></div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-title"><span class="icon">🕒</span> Recent Activity</div>
+    <div id="recentList" class="recent">No predictions yet.</div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  GOVANSH.initHome();
+</script>
+{% endblock %}
+

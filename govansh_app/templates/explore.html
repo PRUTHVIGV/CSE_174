@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}GOVANSH | Explorer{% endblock %}
+
+{% block content %}
+  <header class="page-head">
+    <h1>Breed Explorer</h1>
+    <p>Browse all supported Indian cattle and buffalo breeds.</p>
+  </header>
+
+  <div class="cards">
+    {% for name, info in breeds.items() %}
+      <div class="breed-card">
+        <div class="breed-card-top">
+          <div class="bname">{{ name }}</div>
+          <div class="bhi">{{ info.hindi_name }}</div>
+          <div class="bmeta">{{ info.type }} • {{ info.state }} • {{ info.category }}</div>
+        </div>
+        <div class="bgrid">
+          <div><span>Milk</span>{{ info.milk_yield }}</div>
+          <div><span>Value</span>{{ info.market_value }}</div>
+          <div><span>Scheme</span>{{ info.govt_scheme }}</div>
+          <div><span>Climate</span>{{ info.climate }}</div>
+        </div>
+        <div class="bnote">{{ info.special }}</div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

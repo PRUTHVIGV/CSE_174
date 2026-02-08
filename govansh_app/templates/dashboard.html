@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}GOVANSH | Dashboard{% endblock %}
+
+{% block content %}
+  <header class="page-head">
+    <h1>Dashboard</h1>
+    <p>Analytics + history (SIH‑ready, database backed).</p>
+  </header>
+
+  <div class="dash-grid">
+    <div class="kpi"><div class="k">My Predictions</div><div class="v" id="kMy">0</div></div>
+    <div class="kpi"><div class="k">Total Users</div><div class="v" id="kUsers">0</div></div>
+    <div class="kpi"><div class="k">Total Predictions</div><div class="v" id="kPred">0</div></div>
+    <div class="kpi"><div class="k">Top Breed</div><div class="v" id="kTop">-</div></div>
+  </div>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-title"><span class="icon">🏆</span> Top Breeds (Overall)</div>
+    <div class="toplist" id="topList"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-title"><span class="icon">🕒</span> My Recent Predictions</div>
+    <div class="table">
+      <div class="thead"><div>Breed</div><div>Confidence</div><div>Timestamp</div></div>
+      <div id="rows"></div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  GOVANSH.initDashboard();
+</script>
+{% endblock %}
+

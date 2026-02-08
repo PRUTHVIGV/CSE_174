@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}GOVANSH | Compare{% endblock %}
+
+{% block content %}
+  <header class="page-head">
+    <h1>Compare Breeds</h1>
+    <p>Select any two breeds and compare side‑by‑side.</p>
+  </header>
+
+  <section class="card">
+    <div class="compare-controls">
+      <select id="breed1">
+        {% for b in breed_names %}
+          <option value="{{ b }}">{{ b }}</option>
+        {% endfor %}
+      </select>
+      <span class="vs">vs</span>
+      <select id="breed2">
+        {% for b in breed_names %}
+          <option value="{{ b }}">{{ b }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn primary" type="button" id="btnCompare">Compare</button>
+    </div>
+  </section>
+
+  <div class="compare-grid" id="compareGrid"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  GOVANSH.initCompare();
+</script>
+{% endblock %}
+
