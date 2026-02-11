@@ -6,6 +6,7 @@ from PIL import Image
 import hashlib
 import json
 from datetime import datetime
+import numpy as np
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
@@ -14,8 +15,28 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Simple user storage (use database in production)
 USERS_FILE = 'users.json'
+
+# Load CNN model if available
+MODEL = None
+CLASS_NAMES = []
+
+def load_cnn_model():
+    """Load trained CNN model"""
+    global MODEL, CLASS_NAMES
+    try:
+        import tensorflow as tf
+        MODEL = tf.keras.models.load_model('cattle_model.h5')
+        with open('class_names.txt', 'r') as f:
+            CLASS_NAMES = [line.strip() for line in f]
+        print("✓ CNN Model loaded successfully")
+        return True
+    except:
+        print("✗ CNN Model not found - using demo mode")
+        return False
+
+# Try to load model on startup
+MODEL_LOADED = load_cnn_model()
 
 def load_users():
     if os.path.exists(USERS_FILE):
@@ -31,137 +52,73 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 BREEDS = {
-    "Gir": {
-        "hindi": "गिर", "origin": "Gir Forest, Gujarat", "type": "Dairy", 
-        "milk_yield": "10-12 L/day", "weight": "385-545 kg", "color": "Red/White spotted",
-        "horns": "Curved backward", "special": "World-famous dairy breed",
-        "characteristics": ["Forehead bulge", "Long ears", "Docile temperament"],
-        "keywords": ["red", "white", "spotted", "curved", "bulge"]
-    },
-    "Sahiwal": {
-        "hindi": "साहीवाल", "origin": "Punjab", "type": "Dairy",
-        "milk_yield": "8-10 L/day", "weight": "300-500 kg", "color": "Reddish-brown",
-        "horns": "Short and stumpy", "special": "Heat-tolerant dairy breed",
-        "characteristics": ["Loose skin", "Dewlap present", "Heat resistant"],
-        "keywords": ["brown", "red", "short", "loose", "dewlap"]
-    },
-    "Red_Sindhi": {
-        "hindi": "लाल सिंधी", "origin": "Sindh", "type": "Dairy",
-        "milk_yield": "6-8 L/day", "weight": "300-450 kg", "color": "Uniform red",
-        "horns": "Small and thick", "special": "Compact body, disease resistant",
-        "characteristics": ["Compact build", "Red coat", "Small size"],
-        "keywords": ["red", "small", "compact", "uniform"]
-    },
-    "Tharparkar": {
-        "hindi": "थारपारकर", "origin": "Tharparkar, Rajasthan", "type": "Dual Purpose",
-        "milk_yield": "4-6 L/day", "weight": "350-500 kg", "color": "White/Light grey",
-        "horns": "Medium, upward", "special": "Desert adapted",
-        "characteristics": ["Desert hardy", "Strong build", "Drought resistant"],
-        "keywords": ["white", "grey", "medium", "strong"]
-    },
-    "Ongole": {
-        "hindi": "ओंगोल", "origin": "Ongole, Andhra Pradesh", "type": "Draught",
-        "milk_yield": "3-5 L/day", "weight": "400-600 kg", "color": "White with black points",
-        "horns": "Short and stumpy", "special": "Parent of Brahman cattle",
-        "characteristics": ["Large size", "Prominent hump", "Black muzzle"],
-        "keywords": ["white", "black", "large", "hump", "muzzle"]
-    },
-    "Hariana": {
-        "hindi": "हरियाणा", "origin": "Haryana", "type": "Dual Purpose",
-        "milk_yield": "6-8 L/day", "weight": "350-550 kg", "color": "White/Light grey",
-        "horns": "Short, blunt", "special": "Versatile dual-purpose",
-        "characteristics": ["Muscular body", "Light color", "Good draught"],
-        "keywords": ["white", "grey", "muscular", "short"]
-    },
-    "Kankrej": {
-        "hindi": "कांकरेज", "origin": "Gujarat-Rajasthan", "type": "Draught",
-        "milk_yield": "4-6 L/day", "weight": "350-600 kg", "color": "Silver-grey",
-        "horns": "Lyre-shaped, long", "special": "Most powerful draught",
-        "characteristics": ["Distinctive horns", "Grey color", "Large size"],
-        "keywords": ["grey", "silver", "lyre", "long", "horns"]
-    },
-    "Rathi": {
-        "hindi": "राठी", "origin": "Bikaner, Rajasthan", "type": "Dairy",
-        "milk_yield": "5-7 L/day", "weight": "250-400 kg", "color": "White with patches",
-        "horns": "Small and pointed", "special": "Desert dairy breed",
-        "characteristics": ["Spotted coat", "Small size", "Desert adapted"],
-        "keywords": ["white", "spotted", "patches", "small"]
-    },
-    "Murrah_Buffalo": {
-        "hindi": "मुर्रा भैंस", "origin": "Haryana", "type": "Dairy",
-        "milk_yield": "12-18 L/day", "weight": "450-650 kg", "color": "Jet black",
-        "horns": "Tightly coiled spiral", "special": "World's best dairy buffalo",
-        "characteristics": ["Jet black", "Spiral horns", "High milk yield"],
-        "keywords": ["black", "buffalo", "spiral", "coiled"]
-    },
-    "Mehsana_Buffalo": {
-        "hindi": "मेहसाणा भैंस", "origin": "Mehsana, Gujarat", "type": "Dairy",
-        "milk_yield": "8-12 L/day", "weight": "400-600 kg", "color": "Black with white",
-        "horns": "Curved backward", "special": "Murrah-Surti cross",
-        "characteristics": ["Black with markings", "Curved horns", "Good milk"],
-        "keywords": ["black", "white", "buffalo", "curved", "markings"]
-    }
+    "Gir": {"hindi": "गिर", "origin": "Gujarat", "type": "Dairy", "milk_yield": "10-12 L/day"},
+    "Sahiwal": {"hindi": "साहीवाल", "origin": "Punjab", "type": "Dairy", "milk_yield": "8-10 L/day"},
+    "Red_Sindhi": {"hindi": "लाल सिंधी", "origin": "Sindh", "type": "Dairy", "milk_yield": "6-8 L/day"},
+    "Tharparkar": {"hindi": "थारपारकर", "origin": "Rajasthan", "type": "Dual Purpose", "milk_yield": "4-6 L/day"},
+    "Ongole": {"hindi": "ओंगोल", "origin": "Andhra Pradesh", "type": "Draught", "milk_yield": "3-5 L/day"},
+    "Hariana": {"hindi": "हरियाणा", "origin": "Haryana", "type": "Dual Purpose", "milk_yield": "6-8 L/day"},
+    "Kankrej": {"hindi": "कांकरेज", "origin": "Gujarat-Rajasthan", "type": "Draught", "milk_yield": "4-6 L/day"},
+    "Rathi": {"hindi": "राठी", "origin": "Rajasthan", "type": "Dairy", "milk_yield": "5-7 L/day"},
+    "Murrah_Buffalo": {"hindi": "मुर्रा भैंस", "origin": "Haryana", "type": "Dairy", "milk_yield": "12-18 L/day"},
+    "Mehsana_Buffalo": {"hindi": "मेहसाणा भैंस", "origin": "Gujarat", "type": "Dairy", "milk_yield": "8-12 L/day"},
+    "Kangayam": {"hindi": "कांगयम", "origin": "Tamil Nadu", "type": "Draught", "milk_yield": "2-3 L/day"},
+    "Hallikar": {"hindi": "हल्लीकर", "origin": "Karnataka", "type": "Draught", "milk_yield": "2-3 L/day"},
+    "Amritmahal": {"hindi": "अमृतमहल", "origin": "Karnataka", "type": "Draught", "milk_yield": "2-3 L/day"},
+    "Khillari": {"hindi": "खिल्लारी", "origin": "Maharashtra", "type": "Draught", "milk_yield": "2-3 L/day"},
+    "Deoni": {"hindi": "देवनी", "origin": "Maharashtra", "type": "Dual Purpose", "milk_yield": "4-5 L/day"},
+    "Dangi": {"hindi": "डांगी", "origin": "Maharashtra", "type": "Dual Purpose", "milk_yield": "3-4 L/day"},
+    "Nagori": {"hindi": "नागौरी", "origin": "Rajasthan", "type": "Draught", "milk_yield": "2-3 L/day"},
+    "Punganur": {"hindi": "पुंगनूर", "origin": "Andhra Pradesh", "type": "Dual Purpose", "milk_yield": "3-5 L/day"},
+    "Surti": {"hindi": "सूरती", "origin": "Gujarat", "type": "Dairy", "milk_yield": "6-8 L/day"},
+    "Jaffarabadi": {"hindi": "जाफराबादी", "origin": "Gujarat", "type": "Dairy", "milk_yield": "10-12 L/day"}
 }
 
-def analyze_image(image):
-    img = Image.open(image)
-    img = img.convert('RGB')
-    img_small = img.resize((50, 50))
-    pixels = list(img_small.getdata())
-    
-    r_avg = sum(p[0] for p in pixels) / len(pixels)
-    g_avg = sum(p[1] for p in pixels) / len(pixels)
-    b_avg = sum(p[2] for p in pixels) / len(pixels)
-    
-    color_profile = {
-        'red': r_avg > 120 and r_avg > g_avg and r_avg > b_avg,
-        'white': r_avg > 180 and g_avg > 180 and b_avg > 180,
-        'black': r_avg < 80 and g_avg < 80 and b_avg < 80,
-        'grey': abs(r_avg - g_avg) < 30 and abs(g_avg - b_avg) < 30,
-        'brown': r_avg > 100 and g_avg > 60 and b_avg < 80
-    }
-    
-    return {
-        'colors': color_profile,
-        'brightness': (r_avg + g_avg + b_avg) / 3
-    }
+def preprocess_image(image_file):
+    """Preprocess image for CNN model"""
+    img = Image.open(image_file).convert('RGB')
+    img = img.resize((224, 224))
+    img_array = np.array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
 
-def predict_breed(image_analysis):
-    scores = {}
-    colors = image_analysis['colors']
+def predict_with_cnn(image_file):
+    """Predict using trained CNN model"""
+    img_array = preprocess_image(image_file)
+    predictions = MODEL.predict(img_array, verbose=0)[0]
     
-    for breed, info in BREEDS.items():
-        score = 0
-        
-        if colors['black'] and 'black' in info['color'].lower():
-            score += 40
-        if colors['white'] and 'white' in info['color'].lower():
-            score += 40
-        if colors['red'] and 'red' in info['color'].lower():
-            score += 40
-        if colors['grey'] and 'grey' in info['color'].lower():
-            score += 40
-        if colors['brown'] and 'brown' in info['color'].lower():
-            score += 40
-        
-        if colors['black'] and 'Buffalo' in breed:
-            score += 30
-        
-        import random
-        score += random.uniform(10, 30)
-        
-        scores[breed] = score
-    
-    sorted_breeds = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    total = sum(s for _, s in sorted_breeds[:3])
+    # Get top 3 predictions
+    top_indices = np.argsort(predictions)[-3:][::-1]
     
     results = []
-    for breed, score in sorted_breeds[:3]:
-        confidence = (score / total * 100) if total > 0 else 33.33
+    for idx in top_indices:
+        breed_name = CLASS_NAMES[idx]
+        confidence = float(predictions[idx] * 100)
+        breed_info = BREEDS.get(breed_name, {
+            "hindi": "N/A", "origin": "India", "type": "Unknown", "milk_yield": "N/A"
+        })
         results.append({
-            'breed': breed,
+            'breed': breed_name,
             'confidence': round(confidence, 2),
-            'info': BREEDS[breed]
+            'info': breed_info
+        })
+    
+    return results
+
+def predict_demo(image_file):
+    """Demo prediction (fallback)"""
+    import random
+    breeds = list(BREEDS.keys())
+    random.shuffle(breeds)
+    
+    results = []
+    confidences = [random.uniform(75, 95), random.uniform(60, 75), random.uniform(40, 60)]
+    
+    for i in range(3):
+        results.append({
+            'breed': breeds[i],
+            'confidence': round(confidences[i], 2),
+            'info': BREEDS[breeds[i]]
         })
     
     return results
@@ -170,7 +127,7 @@ def predict_breed(image_analysis):
 def index():
     if 'user' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html', breeds=BREEDS, user=session['user'])
+    return render_template('index.html', breeds=BREEDS, user=session['user'], model_loaded=MODEL_LOADED)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -182,10 +139,7 @@ def login():
         users = load_users()
         
         if email in users and users[email]['password'] == hash_password(password):
-            session['user'] = {
-                'email': email,
-                'name': users[email]['name']
-            }
+            session['user'] = {'email': email, 'name': users[email]['name']}
             return jsonify({'success': True})
         
         return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
@@ -212,11 +166,7 @@ def signup():
         }
         
         save_users(users)
-        
-        session['user'] = {
-            'email': email,
-            'name': name
-        }
+        session['user'] = {'email': email, 'name': name}
         
         return jsonify({'success': True})
     
@@ -240,10 +190,16 @@ def predict():
         return jsonify({'error': 'No file selected'}), 400
     
     try:
-        image_analysis = analyze_image(file)
-        file.seek(0)
-        predictions = predict_breed(image_analysis)
+        # Use CNN model if loaded, otherwise demo
+        if MODEL_LOADED:
+            predictions = predict_with_cnn(file)
+            mode = "CNN Model"
+        else:
+            file.seek(0)
+            predictions = predict_demo(file)
+            mode = "Demo Mode"
         
+        # Convert image to base64
         file.seek(0)
         img = Image.open(file)
         img.thumbnail((400, 400))
@@ -255,10 +211,7 @@ def predict():
             'success': True,
             'predictions': predictions,
             'image': img_str,
-            'analysis': {
-                'dominant_colors': [k for k, v in image_analysis['colors'].items() if v],
-                'brightness': round(image_analysis['brightness'], 2)
-            }
+            'mode': mode
         })
     
     except Exception as e:
