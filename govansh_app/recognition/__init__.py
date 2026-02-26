@@ -1,2 +1,0 @@
-"""Recognition engines (CNN / heuristic)."""
-

@@ -13,9 +13,9 @@ os.makedirs("dataset", exist_ok=True)
 for breed in breeds:
     path = f"dataset/{breed}"
     os.makedirs(path, exist_ok=True)
-    print(f"✓ Created: {path}/")
+    print(f"[OK] Created: {path}/")
 
-print(f"\n✅ Dataset structure ready!")
-print(f"📁 Total folders: {len(breeds)}")
-print(f"\n📝 Next: Add 100+ images to each folder")
-print(f"   Then run: python train_cnn.py")
+print(f"\n[DONE] Dataset structure ready!")
+print(f"Total folders: {len(breeds)}")
+print(f"\nNext: Add 100+ images to each folder")
+print(f"Then run: python train_cnn.py")

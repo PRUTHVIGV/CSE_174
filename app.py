@@ -29,10 +29,10 @@ def load_cnn_model():
         MODEL = tf.keras.models.load_model('cattle_model.h5')
         with open('class_names.txt', 'r') as f:
             CLASS_NAMES = [line.strip() for line in f]
-        print("✓ CNN Model loaded successfully")
+        print("[OK] CNN Model loaded successfully")
         return True
     except:
-        print("✗ CNN Model not found - using demo mode")
+        print("[INFO] CNN Model not found - using demo mode")
         return False
 
 # Try to load model on startup

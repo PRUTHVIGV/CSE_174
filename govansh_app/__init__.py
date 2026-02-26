@@ -1,2 +1,0 @@
-"""GOVANSH application package."""
-
