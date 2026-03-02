@@ -9,6 +9,7 @@ from datetime import datetime
 import random
 import pickle
 import numpy as np
+from history import add_prediction, get_user_history
 
 app = Flask(__name__)
 app.secret_key = 'cattle-breed-secret-key-2024'
@@ -139,6 +140,13 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
+@app.route('/history')
+def history():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    user_history = get_user_history(session['user']['email'])
+    return render_template('history.html', history=user_history)
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'user' not in session:
@@ -198,6 +206,9 @@ def predict():
         
         # Delete temp file
         os.remove(filepath)
+        
+        # Save to history
+        add_prediction(session['user']['email'], results[0]['breed'], results[0]['confidence'], file.filename)
         
         return jsonify({
             'success': True,
