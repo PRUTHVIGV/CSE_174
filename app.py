@@ -147,6 +147,36 @@ def history():
     user_history = get_user_history(session['user']['email'])
     return render_template('history.html', history=user_history)
 
+@app.route('/compare')
+def compare():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('compare.html', breeds=list(BREEDS.keys()), breeds_json=json.dumps(BREEDS))
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    history = get_user_history(session['user']['email'])
+    
+    stats = {
+        'total': len(history),
+        'avg_confidence': round(sum(h['confidence'] for h in history) / len(history), 1) if history else 0,
+        'top_breed': max(set(h['breed'] for h in history), key=lambda x: sum(1 for h in history if h['breed'] == x)).replace('_', ' ') if history else 'N/A'
+    }
+    
+    breed_counts = {}
+    for h in history:
+        breed_counts[h['breed'].replace('_', ' ')] = breed_counts.get(h['breed'].replace('_', ' '), 0) + 1
+    
+    timeline = {}
+    for h in history:
+        date = h['timestamp'][:10]
+        timeline[date] = timeline.get(date, 0) + 1
+    
+    return render_template('dashboard.html', stats=stats, breed_counts=json.dumps(breed_counts), timeline=json.dumps(timeline))
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'user' not in session:

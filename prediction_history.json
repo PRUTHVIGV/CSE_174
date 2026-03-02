@@ -1,0 +1,16 @@
+{
+  "pruthvigv138@gmail.com": [
+    {
+      "breed": "Red_Sindhi",
+      "confidence": 8.18,
+      "image": "Jersey_2.jpg",
+      "timestamp": "2026-03-02T19:22:28.327144"
+    },
+    {
+      "breed": "Tharparkar",
+      "confidence": 7.92,
+      "image": "Jersey_55.jpg",
+      "timestamp": "2026-03-02T19:22:41.933003"
+    }
+  ]
+}
