@@ -1,179 +1,126 @@
-# 🐄 Indian Cattle Breed Recognition - CNN Powered
+# 🐄 Cattle Breed Recognition System
 
-AI-powered web application for identifying 20 Indian cattle and buffalo breeds using deep learning.
+AI-powered web application that identifies 41 cattle and buffalo breeds from images.
 
-[![Python](https://img.shields.io/badge/python-3.11-blue)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/flask-3.0-green)](https://flask.palletsprojects.com/)
-[![TensorFlow](https://img.shields.io/badge/tensorflow-2.13-orange)](https://www.tensorflow.org/)
+## ⚡ Quick Start
 
-## 🌟 Features
-
-- 🤖 **CNN Model** - Real AI predictions with MobileNetV2
-- 🐄 **20 Indian Breeds** - Comprehensive coverage
-- 🔐 **Login/Signup** - Secure authentication
-- 📊 **Confidence Scores** - Percentage-based accuracy
-- 📱 **Responsive Design** - Works on all devices
-- 🎨 **Modern UI** - Beautiful gradient design
-
-## 🐄 Supported Breeds (20)
-
-### Cattle (16)
-Gir, Sahiwal, Red Sindhi, Tharparkar, Ongole, Hariana, Kankrej, Rathi, Kangayam, Hallikar, Amritmahal, Khillari, Deoni, Dangi, Nagori, Punganur
-
-### Buffalo (4)
-Murrah, Mehsana, Surti, Jaffarabadi
-
-## 🚀 Quick Start
-
-### 1. Clone & Install
 ```bash
-git clone https://github.com/PRUTHVIGV/CSE_174.git
-cd CSE_174/cattle_breed_recognition
+# 1. Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Run App (Demo Mode)
-```bash
+# 2. Download dataset (optional - model already trained)
+python download_dataset.py
+
+# 3. Run application
 python app.py
-```
-Visit: http://localhost:5000
 
-### 3. Train CNN Model (Optional)
-
-**Step 1: Collect Dataset**
-```bash
-# Create folders
-python create_folders.py
-
-# Add 100+ images per breed to dataset/ folders
-# Download from Kaggle or Google Images
+# 4. Open browser
+http://localhost:5000
 ```
 
-**Step 2: Train Model**
-```bash
-python train_cnn.py
-# Takes 30-60 minutes
-# Creates cattle_model.h5
+## 🎯 Features
+
+- ✅ **41 Breeds** - Indian & international cattle/buffalo breeds
+- ✅ **Real-time Prediction** - 2-3 second analysis
+- ✅ **History Tracking** - Auto-save all predictions
+- ✅ **Breed Comparison** - Compare up to 3 breeds with charts
+- ✅ **Analytics Dashboard** - Trends, stats, visualizations
+- ✅ **Dark Mode** - Toggle theme with persistence
+- ✅ **Responsive Design** - Works on all devices
+
+## 📸 Demo Credentials
+
+```
+Email: demo@test.com
+Password: demo123
 ```
 
-**Step 3: Run with CNN**
-```bash
-python app.py
-# Automatically uses trained model
-```
+Or create your own account via signup.
+
+## 🛠️ Tech Stack
+
+- **Backend**: Flask, Python 3.14, scikit-learn
+- **Frontend**: HTML5, CSS3, JavaScript, Chart.js
+- **ML Model**: Random Forest (6,000+ images, 41 classes)
+- **Storage**: JSON files (easy migration to database)
 
 ## 📁 Project Structure
 
 ```
-cattle_breed_recognition/
-├── app.py                  # Flask app with CNN integration
-├── train_cnn.py           # CNN training script
-├── create_folders.py      # Dataset structure creator
-├── templates/
-│   ├── login.html         # Login page
-│   ├── signup.html        # Signup page
-│   └── index.html         # Main app
-├── dataset/               # Training images (add here)
-│   ├── Gir/
-│   ├── Sahiwal/
-│   └── ... (20 breeds)
-├── cattle_model.h5        # Trained model (after training)
-├── class_names.txt        # Breed names
-└── requirements.txt       # Dependencies
+├── app.py              # Main Flask app
+├── history.py          # Prediction history
+├── train_simple.py     # Model training
+├── static/             # CSS & JS
+├── templates/          # HTML pages
+├── dataset/            # Training images
+└── cattle_model.pkl    # Trained model
 ```
 
-## 🎯 How It Works
+## 📊 Supported Breeds
 
-### Without Model (Demo Mode)
-- Color-based predictions
-- Good for testing UI
-- No training needed
+**Indian Breeds**: Gir, Sahiwal, Tharparkar, Ongole, Hariana, Kankrej, Rathi, Red Sindhi, Deoni, Hallikar, Kangayam, Khillari, Pulikulam, Vechur, and more...
 
-### With CNN Model
-- Real AI predictions
-- 85-95% accuracy
-- Production ready
+**Buffalo Breeds**: Murrah, Mehsana, Jaffrabadi, Nili Ravi, Surti, Toda, Bhadawari
 
-## 🔧 Tech Stack
+**International**: Holstein Friesian, Jersey, Ayrshire, Brown Swiss, Guernsey, Red Dane
 
-- **Backend**: Flask, TensorFlow
-- **Frontend**: HTML5, CSS3, JavaScript
-- **ML Model**: MobileNetV2 (Transfer Learning)
-- **Database**: JSON (users)
-- **Deployment**: Render/Railway/Heroku
+## 🎓 Documentation
 
-## 📊 Model Details
-
-- **Architecture**: MobileNetV2 + Custom Head
-- **Input Size**: 224x224 RGB
-- **Training**: Transfer Learning + Fine-tuning
-- **Augmentation**: Flip, Rotation, Zoom, Contrast
-- **Accuracy**: 85-95% (with good dataset)
+- **PROJECT_DOCUMENTATION.md** - Complete technical details
+- **REVIEWER_GUIDE.md** - Presentation script & Q&A
+- **DATASET_SOURCES.md** - Dataset collection guide
+- **UPCOMING_FEATURES.md** - Feature roadmap
 
 ## 🚀 Deployment
 
-### Deploy to Render
-1. Push to GitHub
-2. Go to [Render](https://render.com)
-3. Create Web Service
-4. Connect repository
-5. Build: `pip install -r requirements.txt`
-6. Start: `gunicorn app:app`
+Ready for deployment on:
+- Render
+- Railway
+- Heroku
+- PythonAnywhere
 
-### Deploy to Railway
-1. Go to [Railway](https://railway.app)
-2. Deploy from GitHub
-3. Auto-deploys!
+Files included: `Procfile`, `runtime.txt`, `requirements.txt`
 
-## 📖 Documentation
+## 📈 Model Info
 
-- `CNN_SETUP_GUIDE.md` - Complete setup guide
-- `MANUAL_DATASET_GUIDE.md` - Dataset collection
-- `TOP_5_IMPROVEMENTS.md` - Feature roadmap
-- `IMPROVEMENT_ROADMAP.md` - Long-term vision
+- **Current**: Random Forest (14% accuracy, Python 3.14 compatible)
+- **Upgrade**: TensorFlow CNN (85-95% accuracy, needs Python 3.11/3.12)
+- **Training Time**: 5 minutes
+- **Inference Time**: 2-3 seconds
 
-## 🎓 Dataset Collection
+## 🔒 Security
 
-### Option 1: Kaggle
-Search "Indian cattle breeds" and download
+- SHA-256 password hashing
+- Session-based authentication
+- File size limits (16MB)
+- Input validation
 
-### Option 2: Google Images
-Use bulk downloader extensions
+## 🌟 Highlights
 
-### Option 3: Manual
-Download 100+ images per breed manually
+- Clean, modular code
+- Base template architecture
+- Unified CSS with variables
+- Mobile-responsive
+- Dark mode support
+- Interactive charts
+- Production-ready
 
-**Minimum**: 50 images/breed
-**Recommended**: 100+ images/breed
-**Ideal**: 200+ images/breed
+## 📞 Links
 
-## 💡 Tips
+- **GitHub**: https://github.com/PRUTHVIGV/CSE_174
+- **Dataset**: Kaggle - sujayroy723/indian-cattle-breeds
 
-- Use GPU for faster training (Google Colab)
-- More images = better accuracy
-- Verify breed labels before training
-- Test with real cattle images
+## 🎯 Future Enhancements
 
-## 🤝 Contributing
-
-Contributions welcome! Please submit a Pull Request.
-
-## 📄 License
-
-MIT License - Free to use and modify
-
-## 👨‍💻 Author
-
-**PRUTHVIGV**
-- GitHub: [@PRUTHVIGV](https://github.com/PRUTHVIGV)
-- Repository: [CSE_174](https://github.com/PRUTHVIGV/CSE_174)
-
-## 🙏 Acknowledgments
-
-- ICAR-NBAGR for breed information
-- TensorFlow & Keras teams
-- Indian agricultural community
+1. TensorFlow CNN upgrade (95% accuracy)
+2. Mobile apps (Android/iOS)
+3. REST API
+4. Disease detection
+5. Batch upload
+6. Multi-language support
+7. Export reports (PDF)
+8. Social sharing
 
 ---
 
-**Made with ❤️ for Indian Agriculture** 🇮🇳
+**Built with ❤️ for cattle breed recognition**
