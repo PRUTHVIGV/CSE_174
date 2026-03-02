@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction History</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .back-btn { background: white; color: #667eea; border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-weight: 600; margin-bottom: 20px; }
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .history-item { background: #f8f9ff; padding: 20px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .breed-name { font-size: 1.3em; font-weight: bold; color: #333; }
+        .confidence { color: #667eea; font-weight: bold; }
+        .timestamp { color: #999; font-size: 0.9em; }
+        .empty { text-align: center; color: #999; padding: 40px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Prediction History</h1>
+            <p>Your recent cattle breed predictions</p>
+        </div>
+        
+        <button class="back-btn" onclick="window.location.href='/'">← Back to Home</button>
+        
+        <div class="card">
+            {% if history %}
+                {% for item in history|reverse %}
+                <div class="history-item">
+                    <div>
+                        <div class="breed-name">{{ item.breed.replace('_', ' ') }}</div>
+                        <div class="timestamp">{{ item.timestamp }}</div>
+                    </div>
+                    <div class="confidence">{{ item.confidence }}%</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">No predictions yet. Upload an image to get started!</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

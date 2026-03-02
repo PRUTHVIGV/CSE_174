@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .back-btn { background: white; color: #667eea; border: none; padding: 10px 30px; border-radius: 20px; cursor: pointer; font-weight: 600; margin-bottom: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .stat-value { font-size: 3em; font-weight: bold; color: #667eea; }
+        .stat-label { color: #666; margin-top: 10px; font-size: 1.1em; }
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        .chart-container { height: 300px; }
+        canvas { max-width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard</h1>
+            <p>Your prediction analytics</p>
+        </div>
+        
+        <button class="back-btn" onclick="window.location.href='/'">← Back to Home</button>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Predictions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.avg_confidence }}%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.top_breed }}</div>
+                <div class="stat-label">Most Predicted</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Prediction Trends</h2>
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Top Breeds</h2>
+            <div class="chart-container">
+                <canvas id="breedChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const breedCounts = {{ breed_counts|safe }};
+        
+        new Chart(document.getElementById('breedChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(breedCounts),
+                datasets: [{
+                    data: Object.values(breedCounts),
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe']
+                }]
+            }
+        });
+
+        const timeline = {{ timeline|safe }};
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(timeline),
+                datasets: [{
+                    label: 'Predictions',
+                    data: Object.values(timeline),
+                    borderColor: '#667eea',
+                    tension: 0.4
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

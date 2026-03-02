@@ -11,6 +11,18 @@
       "confidence": 7.92,
       "image": "Jersey_55.jpg",
       "timestamp": "2026-03-02T19:22:41.933003"
+    },
+    {
+      "breed": "Jersey",
+      "confidence": 55.08,
+      "image": "Jersey_1.jpg",
+      "timestamp": "2026-03-02T19:30:33.396896"
+    },
+    {
+      "breed": "Ayrshire",
+      "confidence": 6.08,
+      "image": "Jersey_6.jpg",
+      "timestamp": "2026-03-02T19:30:38.826603"
     }
   ]
 }
