@@ -1,6 +1,6 @@
 """
 CNN Training for Cattle Breed Recognition
-Trains on 20 Indian cattle and buffalo breeds
+Trains on 41 cattle and buffalo breeds from Kaggle dataset
 """
 import tensorflow as tf
 from tensorflow import keras
