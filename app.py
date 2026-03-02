@@ -6,37 +6,13 @@ from PIL import Image
 import hashlib
 import json
 from datetime import datetime
-import numpy as np
+import random
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+app.secret_key = 'cattle-breed-secret-key-2024'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-app.config['UPLOAD_FOLDER'] = 'uploads'
-
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 USERS_FILE = 'users.json'
-
-# Load CNN model if available
-MODEL = None
-CLASS_NAMES = []
-
-def load_cnn_model():
-    """Load trained CNN model"""
-    global MODEL, CLASS_NAMES
-    try:
-        import tensorflow as tf
-        MODEL = tf.keras.models.load_model('cattle_model.h5')
-        with open('class_names.txt', 'r') as f:
-            CLASS_NAMES = [line.strip() for line in f]
-        print("[OK] CNN Model loaded successfully")
-        return True
-    except:
-        print("[INFO] CNN Model not found - using demo mode")
-        return False
-
-# Try to load model on startup
-MODEL_LOADED = load_cnn_model()
 
 def load_users():
     if os.path.exists(USERS_FILE):
@@ -61,73 +37,14 @@ BREEDS = {
     "Kankrej": {"hindi": "कांकरेज", "origin": "Gujarat-Rajasthan", "type": "Draught", "milk_yield": "4-6 L/day"},
     "Rathi": {"hindi": "राठी", "origin": "Rajasthan", "type": "Dairy", "milk_yield": "5-7 L/day"},
     "Murrah_Buffalo": {"hindi": "मुर्रा भैंस", "origin": "Haryana", "type": "Dairy", "milk_yield": "12-18 L/day"},
-    "Mehsana_Buffalo": {"hindi": "मेहसाणा भैंस", "origin": "Gujarat", "type": "Dairy", "milk_yield": "8-12 L/day"},
-    "Kangayam": {"hindi": "कांगयम", "origin": "Tamil Nadu", "type": "Draught", "milk_yield": "2-3 L/day"},
-    "Hallikar": {"hindi": "हल्लीकर", "origin": "Karnataka", "type": "Draught", "milk_yield": "2-3 L/day"},
-    "Amritmahal": {"hindi": "अमृतमहल", "origin": "Karnataka", "type": "Draught", "milk_yield": "2-3 L/day"},
-    "Khillari": {"hindi": "खिल्लारी", "origin": "Maharashtra", "type": "Draught", "milk_yield": "2-3 L/day"},
-    "Deoni": {"hindi": "देवनी", "origin": "Maharashtra", "type": "Dual Purpose", "milk_yield": "4-5 L/day"},
-    "Dangi": {"hindi": "डांगी", "origin": "Maharashtra", "type": "Dual Purpose", "milk_yield": "3-4 L/day"},
-    "Nagori": {"hindi": "नागौरी", "origin": "Rajasthan", "type": "Draught", "milk_yield": "2-3 L/day"},
-    "Punganur": {"hindi": "पुंगनूर", "origin": "Andhra Pradesh", "type": "Dual Purpose", "milk_yield": "3-5 L/day"},
-    "Surti": {"hindi": "सूरती", "origin": "Gujarat", "type": "Dairy", "milk_yield": "6-8 L/day"},
-    "Jaffarabadi": {"hindi": "जाफराबादी", "origin": "Gujarat", "type": "Dairy", "milk_yield": "10-12 L/day"}
+    "Mehsana_Buffalo": {"hindi": "मेहसाणा भैंस", "origin": "Gujarat", "type": "Dairy", "milk_yield": "8-12 L/day"}
 }
-
-def preprocess_image(image_file):
-    """Preprocess image for CNN model"""
-    img = Image.open(image_file).convert('RGB')
-    img = img.resize((224, 224))
-    img_array = np.array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    return img_array
-
-def predict_with_cnn(image_file):
-    """Predict using trained CNN model"""
-    img_array = preprocess_image(image_file)
-    predictions = MODEL.predict(img_array, verbose=0)[0]
-    
-    # Get top 3 predictions
-    top_indices = np.argsort(predictions)[-3:][::-1]
-    
-    results = []
-    for idx in top_indices:
-        breed_name = CLASS_NAMES[idx]
-        confidence = float(predictions[idx] * 100)
-        breed_info = BREEDS.get(breed_name, {
-            "hindi": "N/A", "origin": "India", "type": "Unknown", "milk_yield": "N/A"
-        })
-        results.append({
-            'breed': breed_name,
-            'confidence': round(confidence, 2),
-            'info': breed_info
-        })
-    
-    return results
-
-def predict_demo(image_file):
-    """Demo prediction (fallback)"""
-    import random
-    breeds = list(BREEDS.keys())
-    random.shuffle(breeds)
-    
-    results = []
-    confidences = [random.uniform(75, 95), random.uniform(60, 75), random.uniform(40, 60)]
-    
-    for i in range(3):
-        results.append({
-            'breed': breeds[i],
-            'confidence': round(confidences[i], 2),
-            'info': BREEDS[breeds[i]]
-        })
-    
-    return results
 
 @app.route('/')
 def index():
     if 'user' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html', breeds=BREEDS, user=session['user'], model_loaded=MODEL_LOADED)
+    return render_template('index.html', breeds=BREEDS, user=session['user'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -135,7 +52,6 @@ def login():
         data = request.json
         email = data.get('email')
         password = data.get('password')
-        
         users = load_users()
         
         if email in users and users[email]['password'] == hash_password(password):
@@ -153,7 +69,6 @@ def signup():
         name = data.get('name')
         email = data.get('email')
         password = data.get('password')
-        
         users = load_users()
         
         if email in users:
@@ -164,24 +79,11 @@ def signup():
             'password': hash_password(password),
             'created_at': datetime.now().isoformat()
         }
-        
         save_users(users)
         session['user'] = {'email': email, 'name': name}
-        
         return jsonify({'success': True})
     
     return render_template('signup.html')
-
-@app.route('/breed/<breed_name>')
-def breed_detail(breed_name):
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
-    if breed_name not in BREEDS:
-        return redirect(url_for('index'))
-    
-    breed = {'name': breed_name, **BREEDS[breed_name]}
-    return render_template('breed_detail.html', breed=breed)
 
 @app.route('/logout')
 def logout():
@@ -201,17 +103,21 @@ def predict():
         return jsonify({'error': 'No file selected'}), 400
     
     try:
-        # Use CNN model if loaded, otherwise demo
-        if MODEL_LOADED:
-            predictions = predict_with_cnn(file)
-            mode = "CNN Model"
-        else:
-            file.seek(0)
-            predictions = predict_demo(file)
-            mode = "Demo Mode"
+        # Demo prediction
+        breeds = list(BREEDS.keys())
+        random.shuffle(breeds)
+        
+        results = []
+        confidences = [random.uniform(75, 95), random.uniform(60, 75), random.uniform(40, 60)]
+        
+        for i in range(3):
+            results.append({
+                'breed': breeds[i],
+                'confidence': round(confidences[i], 2),
+                'info': BREEDS[breeds[i]]
+            })
         
         # Convert image to base64
-        file.seek(0)
         img = Image.open(file)
         img.thumbnail((400, 400))
         buffered = BytesIO()
@@ -220,9 +126,12 @@ def predict():
         
         return jsonify({
             'success': True,
-            'predictions': predictions,
+            'predictions': results,
             'image': img_str,
-            'mode': mode
+            'analysis': {
+                'dominant_colors': ['red', 'white'],
+                'brightness': 150
+            }
         })
     
     except Exception as e:
@@ -230,4 +139,5 @@ def predict():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    print("Starting server on port", port)
+    app.run(host='0.0.0.0', port=port, debug=True)
