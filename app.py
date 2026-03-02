@@ -202,11 +202,7 @@ def predict():
         return jsonify({
             'success': True,
             'predictions': results,
-            'image': img_str,
-            'analysis': {
-                'dominant_colors': ['red', 'white'],
-                'brightness': 150
-            }
+            'image': img_str
         })
     
     except Exception as e:

@@ -71,7 +71,6 @@
                 {% for breed, info in breeds.items() %}
                 <div class="breed-card">
                     <h3>{{ breed.replace('_', ' ') }}</h3>
-                    <p><strong>{{ info.hindi }}</strong></p>
                     <p>{{ info.origin }}</p>
                     <p><strong>{{ info.milk_yield }}</strong></p>
                     <p style="color: #667eea;">{{ info.type }}</p>
@@ -118,7 +117,6 @@
                             <div class="breed-name">${pred.breed.replace('_', ' ')}</div>
                             <div class="confidence">${pred.confidence}% confidence</div>
                             <div class="breed-info">
-                                <strong>Hindi:</strong> ${pred.info.hindi}<br>
                                 <strong>Origin:</strong> ${pred.info.origin}<br>
                                 <strong>Type:</strong> ${pred.info.type}<br>
                                 <strong>Milk Yield:</strong> ${pred.info.milk_yield}
