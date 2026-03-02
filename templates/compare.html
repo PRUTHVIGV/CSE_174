@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Breeds</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .back-btn { background: white; color: #667eea; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .selector { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: center; margin-bottom: 30px; }
+        select { padding: 15px; border: 2px solid #667eea; border-radius: 10px; font-size: 1em; width: 100%; }
+        .vs { font-size: 2em; font-weight: bold; color: #667eea; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; border-radius: 25px; font-size: 1.1em; cursor: pointer; width: 100%; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; display: none; }
+        .breed-card { background: #f8f9ff; padding: 20px; border-radius: 10px; }
+        .breed-card h3 { color: #667eea; margin-bottom: 15px; font-size: 1.5em; }
+        .info-row { padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .info-label { font-weight: bold; color: #333; }
+        .info-value { color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">← Back to Home</a>
+            <h1>⚖️ Compare Breeds</h1>
+            <p>Compare two cattle breeds side-by-side</p>
+        </div>
+        
+        <div class="card">
+            <div class="selector">
+                <select id="breed1">
+                    <option value="">Select Breed 1</option>
+                    {% for breed in breeds %}
+                    <option value="{{ breed }}">{{ breed.replace('_', ' ') }}</option>
+                    {% endfor %}
+                </select>
+                <div class="vs">VS</div>
+                <select id="breed2">
+                    <option value="">Select Breed 2</option>
+                    {% for breed in breeds %}
+                    <option value="{{ breed }}">{{ breed.replace('_', ' ') }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button class="btn" onclick="compareBreeds()">Compare</button>
+            
+            <div class="comparison" id="comparison">
+                <div class="breed-card" id="card1"></div>
+                <div class="breed-card" id="card2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function compareBreeds() {
+            const breed1 = document.getElementById('breed1').value;
+            const breed2 = document.getElementById('breed2').value;
+            
+            if (!breed1 || !breed2) {
+                alert('Please select both breeds');
+                return;
+            }
+            
+            fetch('/api/compare', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ breed1, breed2 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayComparison(data);
+            });
+        }
+        
+        function displayComparison(data) {
+            const card1 = document.getElementById('card1');
+            const card2 = document.getElementById('card2');
+            
+            card1.innerHTML = createCard(data.breed1);
+            card2.innerHTML = createCard(data.breed2);
+            
+            document.getElementById('comparison').style.display = 'grid';
+        }
+        
+        function createCard(breed) {
+            return `
+                <h3>${breed.name.replace('_', ' ')}</h3>
+                <div class="info-row">
+                    <div class="info-label">Hindi Name</div>
+                    <div class="info-value">${breed.hindi}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Origin</div>
+                    <div class="info-value">${breed.origin}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Type</div>
+                    <div class="info-value">${breed.type}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Milk Yield</div>
+                    <div class="info-value">${breed.milk_yield}</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

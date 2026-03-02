@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction History</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .back-btn { background: white; color: #667eea; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin-bottom: 20px; }
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .history-item { background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 5px solid #667eea; }
+        .history-item img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
+        .breed-name { font-size: 1.3em; font-weight: bold; color: #333; }
+        .confidence { color: #667eea; font-weight: bold; margin: 5px 0; }
+        .timestamp { color: #999; font-size: 0.9em; }
+        .empty { text-align: center; padding: 60px 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">← Back to Home</a>
+            <h1>📊 Prediction History</h1>
+            <p>Your past cattle breed predictions</p>
+        </div>
+        
+        <div class="card">
+            {% if predictions %}
+            <div class="history-grid">
+                {% for pred in predictions %}
+                <div class="history-item">
+                    <img src="data:image/jpeg;base64,{{ pred.image }}" alt="{{ pred.breed }}">
+                    <div class="breed-name">{{ pred.breed.replace('_', ' ') }}</div>
+                    <div class="confidence">{{ pred.confidence }}% confidence</div>
+                    <div class="timestamp">{{ pred.timestamp }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty">
+                <h2>No predictions yet</h2>
+                <p>Upload your first cattle image to get started!</p>
+                <a href="/" class="back-btn" style="margin-top: 20px;">Upload Image</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
