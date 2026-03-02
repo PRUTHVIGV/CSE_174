@@ -172,6 +172,17 @@ def signup():
     
     return render_template('signup.html')
 
+@app.route('/breed/<breed_name>')
+def breed_detail(breed_name):
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    if breed_name not in BREEDS:
+        return redirect(url_for('index'))
+    
+    breed = {'name': breed_name, **BREEDS[breed_name]}
+    return render_template('breed_detail.html', breed=breed)
+
 @app.route('/logout')
 def logout():
     session.pop('user', None)
