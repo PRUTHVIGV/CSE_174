@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Search Breeds{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">🔍 Search Breeds</h1>
+
+<div class="card">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px;">
+        <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="filterBreeds()">
+        <select id="originFilter" onchange="filterBreeds()">
+            <option value="">All Origins</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Punjab">Punjab</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Haryana">Haryana</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Maharashtra">Maharashtra</option>
+        </select>
+        <select id="typeFilter" onchange="filterBreeds()">
+            <option value="">All Types</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Draught">Draught</option>
+            <option value="Dual Purpose">Dual Purpose</option>
+        </select>
+    </div>
+
+    <div id="breedCount" style="margin-bottom: 20px; color: var(--text-light); font-weight: 600;"></div>
+
+    <div class="grid grid-4" id="breedsGrid">
+        {% for breed, info in breeds.items() %}
+        <div class="breed-item" data-name="{{ breed }}" data-origin="{{ info.origin }}" data-type="{{ info.type }}">
+            <div style="background: linear-gradient(135deg, var(--bg-light) 0%, rgba(102, 126, 234, 0.05) 100%); padding: 25px; border-radius: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-5px)'" onmouseout="this.style.borderColor='transparent'; this.style.transform='translateY(0)'">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1em;">{{ breed.replace('_', ' ') }}</h3>
+                <p style="color: var(--text-light); font-size: 0.9em; margin: 5px 0;">📍 {{ info.origin }}</p>
+                <p style="color: var(--text-dark); font-weight: bold; margin: 5px 0;">🥛 {{ info.milk_yield }}</p>
+                <p style="color: var(--primary); font-size: 0.9em; background: rgba(102, 126, 234, 0.1); padding: 5px 10px; border-radius: 15px; display: inline-block; margin-top: 5px;">{{ info.type }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterBreeds() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const originFilter = document.getElementById('originFilter').value;
+        const typeFilter = document.getElementById('typeFilter').value;
+        
+        const items = document.querySelectorAll('.breed-item');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const name = item.dataset.name.toLowerCase().replace(/_/g, ' ');
+            const origin = item.dataset.origin;
+            const type = item.dataset.type;
+            
+            const matchesSearch = name.includes(searchTerm);
+            const matchesOrigin = !originFilter || origin.includes(originFilter);
+            const matchesType = !typeFilter || type === typeFilter;
+            
+            if (matchesSearch && matchesOrigin && matchesType) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('breedCount').textContent = `Showing ${visibleCount} of ${items.length} breeds`;
+    }
+    
+    filterBreeds();
+</script>
+{% endblock %}

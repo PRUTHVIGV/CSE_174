@@ -33,7 +33,14 @@
 
     async function startCamera() {
         try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const constraints = {
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                }
+            };
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
             const video = document.getElementById('video');
             video.srcObject = stream;
             video.style.display = 'block';
@@ -41,7 +48,9 @@
             document.getElementById('startBtn').style.display = 'none';
             document.getElementById('captureBtn').style.display = 'inline-block';
         } catch (err) {
-            alert('Camera access denied or not available');
+            console.error('Camera error:', err);
+            alert('Camera not available. Please check permissions or use file upload instead.');
+            window.location.href = '/';
         }
     }
 

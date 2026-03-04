@@ -217,6 +217,12 @@ def camera():
         return redirect(url_for('login'))
     return render_template('camera.html')
 
+@app.route('/search')
+def search():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('search.html', breeds=BREEDS)
+
 @app.route('/submit-suggestion', methods=['POST'])
 def submit_suggestion():
     if 'user' not in session:
