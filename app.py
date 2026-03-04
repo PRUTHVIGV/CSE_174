@@ -140,6 +140,15 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
+@app.route('/google-login', methods=['POST'])
+def google_login():
+    # Placeholder for Google OAuth - requires google-auth library
+    data = request.json
+    # In production, verify token with Google
+    # For now, create session with Google email
+    session['user'] = {'email': 'google_user@gmail.com', 'name': 'Google User'}
+    return jsonify({'success': True})
+
 @app.route('/history')
 def history():
     if 'user' not in session:
@@ -177,6 +186,18 @@ def dashboard():
     
     return render_template('dashboard.html', stats=stats, breed_counts=json.dumps(breed_counts), timeline=json.dumps(timeline))
 
+@app.route('/team')
+def team():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('team.html')
+
+@app.route('/features')
+def features():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('features.html')
+
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'user' not in session:
@@ -207,11 +228,14 @@ def predict():
             results = []
             for idx in top_3_idx:
                 breed_name = CLASS_NAMES[idx]
-                results.append({
-                    'breed': breed_name,
-                    'confidence': round(float(proba[idx] * 100), 2),
-                    'info': BREEDS.get(breed_name, {'origin': 'Unknown', 'type': 'Unknown', 'milk_yield': 'N/A'})
-                })
+                confidence = float(proba[idx] * 100)
+                # Only show if confidence > 5%
+                if confidence > 5:
+                    results.append({
+                        'breed': breed_name,
+                        'confidence': round(confidence, 2),
+                        'info': BREEDS.get(breed_name, {'origin': 'Unknown', 'type': 'Unknown', 'milk_yield': 'N/A'})
+                    })
         else:
             # Demo prediction
             breeds = list(BREEDS.keys())

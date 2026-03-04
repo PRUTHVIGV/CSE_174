@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Advanced Features{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">🚀 Advanced Features</h1>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">🤖 AI-Powered Analysis</h2>
+    <div class="grid grid-2">
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px; border-left: 5px solid var(--primary);">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">Multi-Model Prediction</h3>
+            <p style="color: var(--text-light); line-height: 1.6;">
+                Uses ensemble learning with Random Forest for accurate breed identification across 41 different cattle and buffalo breeds.
+            </p>
+        </div>
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px; border-left: 5px solid var(--primary);">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">Confidence Scoring</h3>
+            <p style="color: var(--text-light); line-height: 1.6;">
+                Advanced probability analysis provides confidence scores for each prediction, showing only results above 5% threshold.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">📊 Analytics & Insights</h2>
+    <div class="grid grid-3">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;">
+            <div style="font-size: 3em; margin-bottom: 10px;">📈</div>
+            <h3 style="margin-bottom: 10px;">Trend Analysis</h3>
+            <p>Track prediction patterns over time with interactive charts</p>
+        </div>
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;">
+            <div style="font-size: 3em; margin-bottom: 10px;">🎯</div>
+            <h3 style="margin-bottom: 10px;">Accuracy Metrics</h3>
+            <p>Real-time confidence scores and prediction accuracy tracking</p>
+        </div>
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;">
+            <div style="font-size: 3em; margin-bottom: 10px;">📊</div>
+            <h3 style="margin-bottom: 10px;">Breed Distribution</h3>
+            <p>Visual breakdown of most commonly predicted breeds</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">🔧 Technical Features</h2>
+    <div class="grid grid-2">
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">✅ Image Processing</h3>
+            <ul style="color: var(--text-light); line-height: 2;">
+                <li>Automatic image resizing (128x128)</li>
+                <li>Normalization & preprocessing</li>
+                <li>Support for JPG, PNG formats</li>
+                <li>Max file size: 16MB</li>
+            </ul>
+        </div>
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">✅ Security Features</h3>
+            <ul style="color: var(--text-light); line-height: 2;">
+                <li>SHA-256 password encryption</li>
+                <li>Session-based authentication</li>
+                <li>Google OAuth integration</li>
+                <li>Secure file handling</li>
+            </ul>
+        </div>
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">✅ Data Management</h3>
+            <ul style="color: var(--text-light); line-height: 2;">
+                <li>Automatic history tracking</li>
+                <li>Last 50 predictions saved</li>
+                <li>JSON-based storage</li>
+                <li>Export-ready format</li>
+            </ul>
+        </div>
+        <div style="background: var(--bg-light); padding: 25px; border-radius: 15px;">
+            <h3 style="color: var(--primary); margin-bottom: 15px;">✅ UI/UX Features</h3>
+            <ul style="color: var(--text-light); line-height: 2;">
+                <li>Dark mode support</li>
+                <li>Responsive design</li>
+                <li>Interactive charts</li>
+                <li>Smooth animations</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px; text-align: center;">🎓 CSE 174 Project Highlights</h2>
+    <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); padding: 40px; border-radius: 15px; text-align: center;">
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 30px;">
+            <div>
+                <div style="font-size: 2.5em; font-weight: bold; color: var(--primary);">41</div>
+                <div style="color: var(--text-light);">Breeds Supported</div>
+            </div>
+            <div>
+                <div style="font-size: 2.5em; font-weight: bold; color: var(--primary);">6,000+</div>
+                <div style="color: var(--text-light);">Training Images</div>
+            </div>
+            <div>
+                <div style="font-size: 2.5em; font-weight: bold; color: var(--primary);">2-3s</div>
+                <div style="color: var(--text-light);">Prediction Time</div>
+            </div>
+            <div>
+                <div style="font-size: 2.5em; font-weight: bold; color: var(--primary);">100%</div>
+                <div style="color: var(--text-light);">Responsive</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

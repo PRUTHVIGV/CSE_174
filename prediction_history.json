@@ -23,6 +23,30 @@
       "confidence": 6.08,
       "image": "Jersey_6.jpg",
       "timestamp": "2026-03-02T19:30:38.826603"
+    },
+    {
+      "breed": "Jersey",
+      "confidence": 55.08,
+      "image": "Jersey_1.jpg",
+      "timestamp": "2026-03-03T10:07:03.831091"
+    },
+    {
+      "breed": "Jersey",
+      "confidence": 55.08,
+      "image": "Jersey_1.jpg",
+      "timestamp": "2026-03-03T10:48:06.086987"
+    },
+    {
+      "breed": "Sahiwal",
+      "confidence": 8.71,
+      "image": "Bargur_4.JPG",
+      "timestamp": "2026-03-03T10:53:45.098098"
+    },
+    {
+      "breed": "Bargur",
+      "confidence": 52.47,
+      "image": "Bargur_2.JPG",
+      "timestamp": "2026-03-03T11:01:41.951017"
     }
   ]
 }
