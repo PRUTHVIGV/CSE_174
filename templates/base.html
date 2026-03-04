@@ -18,7 +18,6 @@
             <a href="/compare" class="nav-link">Compare</a>
             <a href="/features" class="nav-link">Features</a>
             <a href="/suggest" class="nav-link">💡 Suggest</a>
-            <a href="/team" class="nav-link">Team</a>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; color: white;">
                     👤 {{ session.user.name }}
@@ -32,6 +31,8 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+
+    {% include 'footer.html' %}
 
     <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 

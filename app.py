@@ -155,10 +155,6 @@ def google_authenticate():
     session['user'] = {'email': data['email'], 'name': data['name']}
     return jsonify({'success': True})
 
-@app.route('/google-add-account')
-def google_add_account():
-    return render_template('google_add.html')
-
 @app.route('/history')
 def history():
     if 'user' not in session:
@@ -195,12 +191,6 @@ def dashboard():
         timeline[date] = timeline.get(date, 0) + 1
     
     return render_template('dashboard.html', stats=stats, breed_counts=json.dumps(breed_counts), timeline=json.dumps(timeline))
-
-@app.route('/team')
-def team():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    return render_template('team.html')
 
 @app.route('/features')
 def features():
