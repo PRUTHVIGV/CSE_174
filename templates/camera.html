@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Camera Capture{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">📷 Camera Capture</h1>
+
+<div class="card">
+    <div style="text-align: center;">
+        <video id="video" autoplay style="width: 100%; max-width: 640px; border-radius: 15px; display: none;"></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+        <img id="capturedImage" style="width: 100%; max-width: 640px; border-radius: 15px; display: none;">
+    </div>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button id="startBtn" class="btn btn-primary" onclick="startCamera()">Start Camera</button>
+        <button id="captureBtn" class="btn btn-primary" onclick="capture()" style="display: none;">📸 Capture</button>
+        <button id="retakeBtn" class="btn" onclick="retake()" style="display: none; background: #999; color: white;">Retake</button>
+        <button id="predictBtn" class="btn btn-primary" onclick="predictFromCamera()" style="display: none;">Predict</button>
+    </div>
+
+    <div id="cameraResults" style="margin-top: 30px; display: none;">
+        <h3 style="color: var(--text-dark); margin-bottom: 15px;">Prediction Results</h3>
+        <div id="predictions"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let stream = null;
+    let capturedBlob = null;
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            video.style.display = 'block';
+            
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'inline-block';
+        } catch (err) {
+            alert('Camera access denied or not available');
+        }
+    }
+
+    function capture() {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        
+        canvas.toBlob(blob => {
+            capturedBlob = blob;
+            const img = document.getElementById('capturedImage');
+            img.src = URL.createObjectURL(blob);
+            img.style.display = 'block';
+            
+            video.style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'inline-block';
+            document.getElementById('predictBtn').style.display = 'inline-block';
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    }
+
+    function retake() {
+        document.getElementById('capturedImage').style.display = 'none';
+        document.getElementById('retakeBtn').style.display = 'none';
+        document.getElementById('predictBtn').style.display = 'none';
+        document.getElementById('cameraResults').style.display = 'none';
+        startCamera();
+    }
+
+    async function predictFromCamera() {
+        const formData = new FormData();
+        formData.append('file', capturedBlob, 'camera.jpg');
+        
+        document.getElementById('cameraResults').style.display = 'block';
+        document.getElementById('predictions').innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing...</p></div>';
+        
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                const predictionsDiv = document.getElementById('predictions');
+                predictionsDiv.innerHTML = '';
+                
+                data.predictions.forEach((pred, idx) => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--primary);';
+                    if (idx === 0) div.style.borderLeftWidth = '8px';
+                    
+                    div.innerHTML = `
+                        <div style="font-size: 1.5em; font-weight: bold; color: var(--text-dark);">${pred.breed.replace(/_/g, ' ')}</div>
+                        <div style="font-size: 1.2em; color: var(--primary); font-weight: bold; margin: 10px 0;">${pred.confidence}% confidence</div>
+                        <div style="color: var(--text-light);">
+                            <strong>Origin:</strong> ${pred.info.origin}<br>
+                            <strong>Type:</strong> ${pred.info.type}<br>
+                            <strong>Milk Yield:</strong> ${pred.info.milk_yield}
+                        </div>
+                    `;
+                    predictionsDiv.appendChild(div);
+                });
+            }
+        } catch (err) {
+            alert('Prediction failed: ' + err.message);
+        }
+    }
+</script>
+{% endblock %}

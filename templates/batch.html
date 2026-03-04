@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Upload{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">📤 Batch Upload</h1>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">Upload Multiple Images</h2>
+    
+    <div class="upload-area" id="batchUploadArea">
+        <div style="font-size: 4em; margin-bottom: 20px;">📁</div>
+        <div style="font-size: 1.2em; color: var(--text-dark);">Click or drag multiple images</div>
+        <div style="color: var(--text-light); margin-top: 10px;">Max 10 images at once</div>
+        <input type="file" id="batchInput" accept="image/*" multiple style="display: none;">
+    </div>
+
+    <div id="fileList" style="margin-top: 30px; display: none;">
+        <h3 style="color: var(--text-dark); margin-bottom: 15px;">Selected Files (<span id="fileCount">0</span>)</h3>
+        <div id="files"></div>
+        <button class="btn btn-primary" onclick="processBatch()" style="width: 100%; margin-top: 20px;">Process All Images</button>
+    </div>
+
+    <div id="batchResults" style="margin-top: 30px; display: none;">
+        <h3 style="color: var(--text-dark); margin-bottom: 15px;">Results</h3>
+        <div id="results"></div>
+        <button class="btn btn-primary" onclick="downloadResults()" style="width: 100%; margin-top: 20px;">📥 Download Results (CSV)</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedFiles = [];
+    let results = [];
+
+    const batchUploadArea = document.getElementById('batchUploadArea');
+    const batchInput = document.getElementById('batchInput');
+
+    batchUploadArea.addEventListener('click', () => batchInput.click());
+    batchInput.addEventListener('change', handleFiles);
+
+    batchUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        batchUploadArea.style.borderColor = 'var(--secondary)';
+    });
+
+    batchUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        batchUploadArea.style.borderColor = 'var(--primary)';
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        displayFiles(files);
+    });
+
+    function handleFiles(e) {
+        const files = Array.from(e.target.files).slice(0, 10);
+        displayFiles(files);
+    }
+
+    function displayFiles(files) {
+        selectedFiles = files;
+        document.getElementById('fileCount').textContent = files.length;
+        document.getElementById('fileList').style.display = 'block';
+        
+        const filesDiv = document.getElementById('files');
+        filesDiv.innerHTML = '';
+        
+        files.forEach((file, idx) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background: var(--bg-light); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;';
+            div.innerHTML = `
+                <span>${file.name}</span>
+                <span style="color: var(--text-light);">${(file.size / 1024).toFixed(1)} KB</span>
+            `;
+            filesDiv.appendChild(div);
+        });
+    }
+
+    async function processBatch() {
+        document.getElementById('batchResults').style.display = 'block';
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing images...</p></div>';
+        
+        results = [];
+        
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    results.push({
+                        filename: file.name,
+                        breed: data.predictions[0].breed,
+                        confidence: data.predictions[0].confidence
+                    });
+                }
+            } catch (err) {
+                results.push({
+                    filename: file.name,
+                    breed: 'Error',
+                    confidence: 0
+                });
+            }
+        }
+        
+        displayResults();
+    }
+
+    function displayResults() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+        
+        results.forEach(r => {
+            const div = document.createElement('div');
+            div.style.cssText = 'background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--primary);';
+            div.innerHTML = `
+                <div style="font-weight: bold; color: var(--text-dark); margin-bottom: 5px;">${r.filename}</div>
+                <div style="color: var(--primary); font-size: 1.1em;">${r.breed.replace(/_/g, ' ')} - ${r.confidence}%</div>
+            `;
+            resultsDiv.appendChild(div);
+        });
+    }
+
+    function downloadResults() {
+        let csv = 'Filename,Breed,Confidence\n';
+        results.forEach(r => {
+            csv += `${r.filename},${r.breed},${r.confidence}\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'batch_results.csv';
+        a.click();
+    }
+</script>
+{% endblock %}

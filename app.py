@@ -205,6 +205,18 @@ def suggest():
     suggestions = load_suggestions()
     return render_template('suggest.html', suggestions=suggestions[-10:][::-1])
 
+@app.route('/batch')
+def batch():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('batch.html')
+
+@app.route('/camera')
+def camera():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('camera.html')
+
 @app.route('/submit-suggestion', methods=['POST'])
 def submit_suggestion():
     if 'user' not in session:
