@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in - Google Accounts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { background: white; }
+        .google-container { max-width: 450px; margin: 50px auto; padding: 40px; border: 1px solid #dadce0; border-radius: 8px; }
+        .google-logo { text-align: center; margin-bottom: 20px; }
+        .google-logo img { width: 75px; }
+        h1 { font-size: 24px; text-align: center; color: #202124; font-weight: 400; margin-bottom: 30px; }
+        input { width: 100%; padding: 15px; border: 1px solid #dadce0; border-radius: 4px; margin-bottom: 20px; font-size: 16px; }
+        input:focus { border-color: #1a73e8; outline: none; }
+        .btn-google { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn-google:hover { background: #1765cc; }
+        .permissions { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .permission-item { display: flex; align-items: center; gap: 10px; margin: 10px 0; color: #5f6368; }
+    </style>
+</head>
+<body>
+    <div class="google-container">
+        <div class="google-logo">
+            <svg width="75" height="24" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><path d="M9.827 8.273h8.727v3.273h-5.455c.364 2.182 2.182 3.273 4.364 3.273 1.455 0 2.727-.545 3.636-1.455l2.364 2.364c-1.455 1.455-3.455 2.364-6 2.364-4.909 0-8.727-3.818-8.727-8.727s3.818-8.727 8.727-8.727c2.545 0 4.545.909 6 2.364l-2.364 2.364c-.909-.909-2.182-1.455-3.636-1.455-2.182 0-4 1.091-4.364 3.273h5.455V8.273H9.827z" fill="#4285F4"/><path d="M27.273 8.273h8.727v3.273h-5.455c.364 2.182 2.182 3.273 4.364 3.273 1.455 0 2.727-.545 3.636-1.455l2.364 2.364c-1.455 1.455-3.455 2.364-6 2.364-4.909 0-8.727-3.818-8.727-8.727s3.818-8.727 8.727-8.727c2.545 0 4.545.909 6 2.364l-2.364 2.364c-.909-.909-2.182-1.455-3.636-1.455-2.182 0-4 1.091-4.364 3.273h5.455V8.273h-8.727z" fill="#EA4335"/><path d="M44.727 8.273h8.727v3.273h-5.455c.364 2.182 2.182 3.273 4.364 3.273 1.455 0 2.727-.545 3.636-1.455l2.364 2.364c-1.455 1.455-3.455 2.364-6 2.364-4.909 0-8.727-3.818-8.727-8.727s3.818-8.727 8.727-8.727c2.545 0 4.545.909 6 2.364l-2.364 2.364c-.909-.909-2.182-1.455-3.636-1.455-2.182 0-4 1.091-4.364 3.273h5.455V8.273h-8.727z" fill="#FBBC05"/><path d="M62.182 8.273h8.727v3.273h-5.455c.364 2.182 2.182 3.273 4.364 3.273 1.455 0 2.727-.545 3.636-1.455l2.364 2.364c-1.455 1.455-3.455 2.364-6 2.364-4.909 0-8.727-3.818-8.727-8.727s3.818-8.727 8.727-8.727c2.545 0 4.545.909 6 2.364l-2.364 2.364c-.909-.909-2.182-1.455-3.636-1.455-2.182 0-4 1.091-4.364 3.273h5.455V8.273h-8.727z" fill="#34A853"/></g></svg>
+        </div>
+        
+        <h1>Sign in to continue to Cattle Recognition</h1>
+        
+        <form id="googleAuthForm">
+            <input type="text" id="name" placeholder="Enter your name" required>
+            <input type="email" id="email" placeholder="Email" required>
+            
+            <div class="permissions">
+                <div style="font-weight: 500; margin-bottom: 15px; color: #202124;">Cattle Recognition wants to:</div>
+                <div class="permission-item">
+                    <svg width="20" height="20" fill="#5f6368"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/></svg>
+                    View your email address
+                </div>
+                <div class="permission-item">
+                    <svg width="20" height="20" fill="#5f6368"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/></svg>
+                    View your basic profile info
+                </div>
+                <div class="permission-item">
+                    <svg width="20" height="20" fill="#5f6368"><path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/></svg>
+                    Save prediction history
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="/login" style="color: #1a73e8; text-decoration: none; font-size: 14px;">Cancel</a>
+                <button type="submit" class="btn-google">Continue</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('googleAuthForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            fetch('/google-authenticate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, name})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ import random
 import pickle
 import numpy as np
 from history import add_prediction, get_user_history
+from suggestions import save_suggestion, load_suggestions
 
 app = Flask(__name__)
 app.secret_key = 'cattle-breed-secret-key-2024'
@@ -142,12 +143,11 @@ def logout():
 
 @app.route('/google-login', methods=['POST'])
 def google_login():
-    # Redirect to account selection page
-    return jsonify({'success': True, 'redirect': '/google-select'})
+    return jsonify({'success': True, 'redirect': '/google-auth'})
 
-@app.route('/google-select')
-def google_select():
-    return render_template('google_select.html')
+@app.route('/google-auth')
+def google_auth():
+    return render_template('google_auth.html')
 
 @app.route('/google-authenticate', methods=['POST'])
 def google_authenticate():
@@ -207,6 +207,22 @@ def features():
     if 'user' not in session:
         return redirect(url_for('login'))
     return render_template('features.html')
+
+@app.route('/suggest')
+def suggest():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    suggestions = load_suggestions()
+    return render_template('suggest.html', suggestions=suggestions[-10:][::-1])
+
+@app.route('/submit-suggestion', methods=['POST'])
+def submit_suggestion():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    data = request.json
+    save_suggestion(data['name'], data['category'], data['title'], data['description'], data['priority'])
+    return jsonify({'success': True})
 
 @app.route('/predict', methods=['POST'])
 def predict():

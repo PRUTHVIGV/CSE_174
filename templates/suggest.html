@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Suggest Features{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">\ud83d\udca1 Suggest a Feature</h1>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">We'd love to hear your ideas!</h2>
+    
+    <form id="suggestionForm">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Your Name</label>
+            <input type="text" id="name" value="{{ session.user.name }}" readonly style="background: var(--bg-light);">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Feature Category</label>
+            <select id="category" required>
+                <option value="">Select category</option>
+                <option value="AI/ML">AI/ML Improvements</option>
+                <option value="UI/UX">User Interface</option>
+                <option value="Performance">Performance</option>
+                <option value="Security">Security</option>
+                <option value="Mobile">Mobile App</option>
+                <option value="Analytics">Analytics</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Feature Title</label>
+            <input type="text" id="title" placeholder="Brief title for your feature" required>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Description</label>
+            <textarea id="description" rows="5" placeholder="Describe your feature idea in detail..." required style="width: 100%; padding: 15px; border: 2px solid var(--primary); border-radius: 10px; font-size: 1em; resize: vertical;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark);">Priority</label>
+            <select id="priority" required>
+                <option value="Low">Low - Nice to have</option>
+                <option value="Medium" selected>Medium - Would be useful</option>
+                <option value="High">High - Really need this</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Suggestion</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">\ud83c\udf1f Recent Suggestions</h2>
+    <div id="suggestions">
+        {% if suggestions %}
+            {% for s in suggestions %}
+            <div style="background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--primary);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                    <h3 style="color: var(--text-dark); margin: 0;">{{ s.title }}</h3>
+                    <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.85em;">{{ s.priority }}</span>
+                </div>
+                <p style="color: var(--text-light); margin-bottom: 10px;">{{ s.description }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: var(--text-light);">
+                    <span>\ud83d\udc64 {{ s.name }}</span>
+                    <span>\ud83c\udff7\ufe0f {{ s.category }}</span>
+                    <span>\ud83d\udcc5 {{ s.timestamp }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: var(--text-light); padding: 40px;">No suggestions yet. Be the first to suggest a feature!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('suggestionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const data = {
+            name: document.getElementById('name').value,
+            category: document.getElementById('category').value,
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            priority: document.getElementById('priority').value
+        };
+        
+        fetch('/submit-suggestion', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Thank you! Your suggestion has been submitted.');
+                location.reload();
+            }
+        });
+    });
+</script>
+{% endblock %}

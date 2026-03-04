@@ -17,8 +17,14 @@
             <a href="/history" class="nav-link">History</a>
             <a href="/compare" class="nav-link">Compare</a>
             <a href="/features" class="nav-link">Features</a>
+            <a href="/suggest" class="nav-link">💡 Suggest</a>
             <a href="/team" class="nav-link">Team</a>
-            <a href="/logout" class="nav-link logout">Logout</a>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; color: white;">
+                    👤 {{ session.user.name }}
+                </div>
+                <a href="/logout" class="nav-link logout">Logout</a>
+            </div>
         </div>
     </nav>
     {% endif %}
