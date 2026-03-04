@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Google Account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div class="card" style="max-width: 500px; width: 100%;">
+            <h1 style="text-align: center; color: var(--primary); margin-bottom: 10px;">Choose an account</h1>
+            <p style="text-align: center; color: var(--text-light); margin-bottom: 30px;">to continue to Cattle Recognition</p>
+            
+            <div id="accounts">
+                <div class="account-item" onclick="selectAccount('demo@gmail.com', 'Demo User')">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; font-weight: bold;">D</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--text-dark);">Demo User</div>
+                        <div style="color: var(--text-light); font-size: 0.9em;">demo@gmail.com</div>
+                    </div>
+                </div>
+                
+                <div class="account-item" onclick="selectAccount('test@gmail.com', 'Test User')">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; font-weight: bold;">T</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--text-dark);">Test User</div>
+                        <div style="color: var(--text-light); font-size: 0.9em;">test@gmail.com</div>
+                    </div>
+                </div>
+
+                <div class="account-item" onclick="window.location.href='/google-add-account'">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5em;">+</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; color: var(--primary);">Use another account</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="/login" style="color: var(--primary); text-decoration: none; font-weight: 600;">← Back to login</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .account-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+        }
+        .account-item:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+    </style>
+
+    <script>
+        function selectAccount(email, name) {
+            fetch('/google-authenticate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, name})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

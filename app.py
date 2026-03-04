@@ -142,12 +142,22 @@ def logout():
 
 @app.route('/google-login', methods=['POST'])
 def google_login():
-    # Placeholder for Google OAuth - requires google-auth library
+    # Redirect to account selection page
+    return jsonify({'success': True, 'redirect': '/google-select'})
+
+@app.route('/google-select')
+def google_select():
+    return render_template('google_select.html')
+
+@app.route('/google-authenticate', methods=['POST'])
+def google_authenticate():
     data = request.json
-    # In production, verify token with Google
-    # For now, create session with Google email
-    session['user'] = {'email': 'google_user@gmail.com', 'name': 'Google User'}
+    session['user'] = {'email': data['email'], 'name': data['name']}
     return jsonify({'success': True})
+
+@app.route('/google-add-account')
+def google_add_account():
+    return render_template('google_add.html')
 
 @app.route('/history')
 def history():

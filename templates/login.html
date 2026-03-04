@@ -41,7 +41,9 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else if (data.success) {
                     window.location.href = '/';
                 } else {
                     alert('Google login failed');
