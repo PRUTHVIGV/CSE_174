@@ -1,6 +1,12 @@
 # 🐄 Cattle Breed Recognition System
 
-AI-powered web application that identifies 41 cattle and buffalo breeds from images.
+> AI-powered web application that identifies 41 cattle and buffalo breeds from images.
+
+## 🌐 Live Website
+
+**[https://cse-174.onrender.com](https://cse-174.onrender.com)**
+
+> Deployed on Render — may take ~30 seconds to wake up on first visit (free tier).
 
 ## ⚡ Quick Start
 

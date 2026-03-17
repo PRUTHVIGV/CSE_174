@@ -3,18 +3,6 @@
 
 {% block content %}
 
-<!-- Breed of the Day -->
-<div class="card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px 28px; margin-bottom: 24px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <div style="font-size:0.8em; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">🌟 Breed of the Day</div>
-            <div id="botdName" style="font-size:1.6em; font-weight:700; margin-top:4px;">Loading...</div>
-            <div id="botdInfo" style="opacity:0.85; margin-top:4px; font-size:0.9em;"></div>
-        </div>
-        <div style="font-size:3em;">🐄</div>
-    </div>
-</div>
-
 <!-- Upload Card -->
 <div class="card">
     <h2 style="text-align:center; margin-bottom:24px; color:var(--text-dark);">Upload Cattle Image</h2>
@@ -67,6 +55,18 @@
             <div class="breed-card-milk">🥛 {{ info.milk_yield }}</div>
         </a>
         {% endfor %}
+    </div>
+</div>
+
+<!-- Breed of the Day -->
+<div class="card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px 28px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <div style="font-size:0.8em; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">🌟 Breed of the Day</div>
+            <div id="botdName" style="font-size:1.6em; font-weight:700; margin-top:4px;">Loading...</div>
+            <div id="botdInfo" style="opacity:0.85; margin-top:4px; font-size:0.9em;"></div>
+        </div>
+        <div style="font-size:3em;">🐄</div>
     </div>
 </div>
 
