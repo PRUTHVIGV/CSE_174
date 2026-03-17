@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<h1 style="color:white; margin-bottom:20px;">👤 My Profile</h1>
+<div class="grid grid-2">
+    <div class="card">
+        <h2 style="color:var(--text-dark); margin-bottom:20px;">Account Info</h2>
+        {% if stats.avatar %}
+        <img src="/uploads/{{ stats.avatar }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 15px;border:3px solid var(--primary);">
+        {% else %}
+        <div style="font-size:4em; text-align:center; margin-bottom:15px;">👤</div>
+        {% endif %}
+        <div style="text-align:center; margin-bottom:20px;">
+            <label style="background:var(--bg-light);padding:8px 16px;border-radius:8px;cursor:pointer;color:var(--primary);font-size:0.9em;border:1px solid var(--primary);">
+                📷 Change Photo
+                <input type="file" accept="image/*" onchange="uploadAvatar(this)" style="display:none;">
+            </label>
+        </div>
+        <div style="background:var(--bg-light); padding:15px; border-radius:10px; margin-bottom:10px;">
+            <strong style="color:var(--text-light);">Name</strong>
+            <div style="color:var(--text-dark); font-size:1.2em; margin-top:5px;">{{ user.name }}</div>
+        </div>
+        <div style="background:var(--bg-light); padding:15px; border-radius:10px; margin-bottom:10px;">
+            <strong style="color:var(--text-light);">Email</strong>
+            <div style="color:var(--text-dark); font-size:1.2em; margin-top:5px;">{{ user.email }}</div>
+        </div>
+        <div style="background:var(--bg-light); padding:15px; border-radius:10px; margin-bottom:20px;">
+            <strong style="color:var(--text-light);">Joined</strong>
+            <div style="color:var(--text-dark); font-size:1.2em; margin-top:5px;">{{ stats.joined }}</div>
+        </div>
+        <a href="/change-password" style="display:block; text-align:center; background:var(--primary); color:white; padding:12px; border-radius:10px; text-decoration:none; margin-bottom:10px;">🔑 Change Password</a>
+        <button onclick="deleteAccount()" style="width:100%; background:#ff4757; color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; font-size:1em;">🗑 Delete Account</button>
+    </div>
+    <div class="card">
+        <h2 style="color:var(--text-dark); margin-bottom:20px;">My Stats</h2>
+        <div class="grid grid-2">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Predictions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.avg_confidence }}%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.favorites_count }}</div>
+                <div class="stat-label">Favorites</div>
+            </div>
+            <div class="stat-card" id="streakCard">
+                <div class="stat-value" id="streakVal">-</div>
+                <div class="stat-label">Day Streak 🔥</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    fetch('/streak').then(r=>r.json()).then(d=>{ document.getElementById('streakVal').textContent = d.streak; });
+    function uploadAvatar(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const fd = new FormData(); fd.append('avatar', file);
+        fetch('/upload-avatar', {method:'POST', body:fd})
+            .then(r=>r.json()).then(d=>{ if(d.success){ showToast('Photo updated!'); location.reload(); } else showToast(d.error,'error'); });
+    }
+    function deleteAccount(){
+        if(!confirm('Permanently delete your account? This cannot be undone.')) return;
+        fetch('/delete-account',{method:'POST'}).then(()=>{ window.location='/login'; });
+    }
+</script>
+{% endblock %}

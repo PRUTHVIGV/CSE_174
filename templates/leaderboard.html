@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<h1 style="text-align: center; color: white; margin-bottom: 30px;">🏆 Leaderboard</h1>
+
+<!-- Summary Stats -->
+<div class="grid grid-2" style="margin-bottom: 30px;">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_predictions }}</div>
+        <div class="stat-label">Total Predictions (All Users)</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Active Users</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+
+    <!-- Top Breeds -->
+    <div class="card">
+        <h2 style="color: var(--text-dark); margin-bottom: 20px;">🐄 Most Identified Breeds</h2>
+        {% if top_breeds %}
+            {% for breed, count in top_breeds %}
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                <div style="font-size: 1.4em; font-weight: bold; color: var(--primary); width: 30px; text-align: center;">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}{{ loop.index }}
+                    {% endif %}
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span style="font-weight: 600; color: var(--text-dark);">{{ breed }}</span>
+                        <span style="color: var(--text-light); font-size: 0.9em;">{{ count }} times</span>
+                    </div>
+                    <div style="background: var(--bg-light); border-radius: 10px; height: 8px; overflow: hidden;">
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 100%; width: {{ (count / top_breeds[0][1] * 100)|int }}%; border-radius: 10px; transition: width 0.5s;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: var(--text-light); padding: 40px;">No predictions yet. Start identifying breeds!</p>
+        {% endif %}
+    </div>
+
+    <!-- Top Users -->
+    <div class="card">
+        <h2 style="color: var(--text-dark); margin-bottom: 20px;">👤 Most Active Users</h2>
+        {% if top_users %}
+            {% for email, count in top_users %}
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 12px; background: var(--bg-light); border-radius: 10px; {% if email == session.user.email %}border: 2px solid var(--primary);{% endif %}">
+                <div style="font-size: 1.4em; width: 30px; text-align: center;">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}{{ loop.index }}
+                    {% endif %}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: var(--text-dark);">
+                        {{ email }}
+                        {% if email == session.user.email %}
+                            <span style="background: var(--primary); color: white; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; margin-left: 8px;">You</span>
+                        {% endif %}
+                    </div>
+                    <div style="color: var(--text-light); font-size: 0.9em;">{{ count }} predictions</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: var(--text-light); padding: 40px;">No users yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Chart -->
+{% if top_breeds %}
+<div class="card" style="margin-top: 30px;">
+    <h2 style="color: var(--text-dark); margin-bottom: 20px;">📊 Top Breeds Chart</h2>
+    <canvas id="leaderboardChart" height="80"></canvas>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if top_breeds %}
+<script>
+    const labels = [{% for breed, count in top_breeds %}"{{ breed }}"{% if not loop.last %},{% endif %}{% endfor %}];
+    const data   = [{% for breed, count in top_breeds %}{{ count }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+    new Chart(document.getElementById('leaderboardChart'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Times Identified',
+                data,
+                backgroundColor: 'rgba(102,126,234,0.7)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

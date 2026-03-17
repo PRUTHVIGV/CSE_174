@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Breed Encyclopedia{% endblock %}
+{% block content %}
+<h1 style="color:white; margin-bottom:20px;">📖 Breed Encyclopedia</h1>
+
+<div class="card" style="margin-bottom:20px; padding:20px;">
+    <div style="display:flex; gap:15px; flex-wrap:wrap;">
+        <input type="text" id="searchInput" placeholder="🔍 Search breed..." oninput="filterBreeds()" style="flex:1; margin-bottom:0; min-width:200px;">
+        <select id="typeFilter" onchange="filterBreeds()" style="width:auto; margin-bottom:0;">
+            <option value="">All Types</option>
+            <option>Dairy</option>
+            <option>Draught</option>
+            <option>Dual Purpose</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid grid-3" id="breedGrid">
+    {% for breed, info in breeds.items() %}
+    <div class="card breed-card" data-breed="{{ breed.lower() }}" data-type="{{ info.type }}" style="padding:25px; cursor:pointer;" onclick="window.location='/breed/{{ breed }}'">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:10px;">
+            <h3 style="color:var(--primary);">{{ breed.replace('_',' ') }}</h3>
+            <span style="background:var(--bg-light); padding:4px 10px; border-radius:20px; font-size:0.8em; color:var(--text-light);">{{ info.type }}</span>
+        </div>
+        <div style="color:var(--text-light); font-size:0.9em; line-height:1.8;">
+            <div>📍 <strong>Origin:</strong> {{ info.origin }}</div>
+            <div>🥛 <strong>Milk Yield:</strong> {{ info.milk_yield }}</div>
+        </div>
+        <div style="margin-top:15px; color:var(--primary); font-size:0.85em;">View Details →</div>
+    </div>
+    {% endfor %}
+</div>
+<div id="noResults" style="display:none; text-align:center; color:white; padding:40px; font-size:1.2em;">No breeds found.</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterBreeds(){
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const t = document.getElementById('typeFilter').value;
+    let count = 0;
+    document.querySelectorAll('.breed-card').forEach(c=>{
+        const match = c.dataset.breed.includes(q) && (!t || c.dataset.type === t);
+        c.style.display = match ? '' : 'none';
+        if(match) count++;
+    });
+    document.getElementById('noResults').style.display = count === 0 ? '' : 'none';
+}
+</script>
+{% endblock %}

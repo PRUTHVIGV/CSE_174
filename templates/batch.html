@@ -43,13 +43,24 @@
     batchUploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         batchUploadArea.style.borderColor = 'var(--secondary)';
+        batchUploadArea.style.background = 'rgba(102,126,234,0.1)';
+        batchUploadArea.style.transform = 'scale(1.02)';
+    });
+
+    batchUploadArea.addEventListener('dragleave', () => {
+        batchUploadArea.style.borderColor = 'var(--primary)';
+        batchUploadArea.style.background = '';
+        batchUploadArea.style.transform = '';
     });
 
     batchUploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         batchUploadArea.style.borderColor = 'var(--primary)';
+        batchUploadArea.style.background = '';
+        batchUploadArea.style.transform = '';
         const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
         displayFiles(files);
+        showToast(`${files.length} file(s) added`, 'success');
     });
 
     function handleFiles(e) {
@@ -81,6 +92,8 @@
         const resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing images...</p></div>';
         
+        resultsDiv.innerHTML = '';
+        for(let i=0;i<3;i++) resultsDiv.innerHTML += `<div class="skeleton" style="height:70px;margin-bottom:12px;"></div>`;
         results = [];
         
         for (let i = 0; i < selectedFiles.length; i++) {
@@ -112,6 +125,7 @@
         }
         
         displayResults();
+        showToast(`Processed ${results.length} image(s)!`, 'success');
     }
 
     function displayResults() {

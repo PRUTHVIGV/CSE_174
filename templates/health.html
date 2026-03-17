@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Health Tips{% endblock %}
+{% block content %}
+<h1 style="color:white; margin-bottom:20px;">💊 Breed Health Tips</h1>
+<div class="card" style="margin-bottom:20px;">
+    <input type="text" id="searchInput" placeholder="🔍 Search breed..." oninput="filterBreeds()" style="margin-bottom:0;">
+</div>
+<div class="grid grid-3" id="breedGrid">
+    {% for breed, info in breeds.items() %}
+    <div class="card breed-card" data-breed="{{ breed.lower() }}" style="padding:25px;">
+        <h3 style="color:var(--primary); margin-bottom:5px;">{{ breed.replace('_',' ') }}</h3>
+        <div style="color:var(--text-light); font-size:0.85em; margin-bottom:15px;">{{ info.origin }} · {{ info.type }}</div>
+        <ul style="color:var(--text-dark); padding-left:20px; line-height:2;">
+            {% set breed_tips = tips.get(breed, tips['default']) %}
+            {% for tip in breed_tips %}
+            <li style="font-size:0.9em;">{{ tip }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function filterBreeds(){
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    document.querySelectorAll('.breed-card').forEach(c=>{
+        c.style.display = c.dataset.breed.includes(q) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

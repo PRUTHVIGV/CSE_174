@@ -10,20 +10,20 @@
 <body>
     {% if session.user %}
     <nav class="navbar">
-        <div class="nav-brand">🐄 Cattle Recognition - CSE 174</div>
-        <div class="nav-links">
+        <div class="nav-brand">🐄 Cattle Recognition</div>
+        <button class="hamburger" onclick="toggleNav()">☰</button>
+        <div class="nav-links" id="navLinks">
             <a href="/" class="nav-link">Home</a>
             <a href="/search" class="nav-link">🔍 Search</a>
             <a href="/dashboard" class="nav-link">Dashboard</a>
-            <a href="/history" class="nav-link">History</a>
+            <a href="/history" class="nav-link">History <span id="historyBadge" class="nav-badge" style="display:none"></span></a>
             <a href="/compare" class="nav-link">Compare</a>
-            <a href="/suggest" class="nav-link">💡 Suggest</a>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; color: white;">
-                    👤 {{ session.user.name }}
-                </div>
-                <a href="/logout" class="nav-link logout">Logout</a>
-            </div>
+            <a href="/encyclopedia" class="nav-link">Encyclopedia</a>
+            <a href="/health" class="nav-link">Health</a>
+            <a href="/leaderboard" class="nav-link">Leaderboard</a>
+            <a href="/quiz" class="nav-link">Quiz</a>
+            <a href="/profile" class="nav-link">👤 {{ session.user.name }}</a>
+            <a href="/logout" class="nav-link logout">Logout</a>
         </div>
     </nav>
     {% endif %}
@@ -38,5 +38,18 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     {% block scripts %}{% endblock %}
+
+    <script>
+    fetch('/api/stats').then(r => r.json()).then(d => {
+        if (d.total_predictions > 0) {
+            const b = document.getElementById('historyBadge');
+            if (b) { b.textContent = d.total_predictions > 9 ? '9+' : d.total_predictions; b.style.display = 'inline'; }
+        }
+    }).catch(() => {});
+
+    function toggleNav() {
+        document.getElementById('navLinks').classList.toggle('open');
+    }
+    </script>
 </body>
 </html>

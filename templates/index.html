@@ -1,100 +1,230 @@
 {% extends "base.html" %}
-
 {% block title %}Home - Cattle Breed Recognition{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1 style="text-align: center; color: var(--text-dark); margin-bottom: 30px;">🐄 Upload Cattle Image</h1>
-    
-    <div class="upload-area" id="uploadArea">
-        <div style="font-size: 4em; margin-bottom: 20px;">📸</div>
-        <div style="font-size: 1.2em; color: var(--text-dark);">Click to upload or drag and drop</div>
-        <div style="color: var(--text-light); margin-top: 10px;">JPG, PNG (Max 16MB)</div>
-        <input type="file" id="fileInput" accept="image/*" style="display: none;">
-    </div>
-    
-    <div class="loading" id="loading" style="display: none;">
-        <div class="spinner"></div>
-        <p style="margin-top: 15px; color: var(--text-light);">Analyzing...</p>
-    </div>
-    
-    <div id="results" style="display: none; margin-top: 40px;">
-        <img id="resultImage" style="max-width: 400px; border-radius: 15px; margin: 20px auto; display: block;">
-        <h2 style="color: var(--text-dark); margin-bottom: 20px;">Prediction Results</h2>
-        <div id="predictions"></div>
+
+<!-- Breed of the Day -->
+<div class="card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px 28px; margin-bottom: 24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <div style="font-size:0.8em; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">🌟 Breed of the Day</div>
+            <div id="botdName" style="font-size:1.6em; font-weight:700; margin-top:4px;">Loading...</div>
+            <div id="botdInfo" style="opacity:0.85; margin-top:4px; font-size:0.9em;"></div>
+        </div>
+        <div style="font-size:3em;">🐄</div>
     </div>
 </div>
 
+<!-- Upload Card -->
 <div class="card">
-    <h2 style="color: var(--text-dark); margin-bottom: 20px;">Supported Breeds ({{ breeds|length }})</h2>
-    <div class="grid grid-4">
-        {% for breed, info in breeds.items() %}
-        <div style="background: var(--bg-light); padding: 20px; border-radius: 10px; text-align: center;">
-            <h3 style="color: var(--primary); margin-bottom: 8px;">{{ breed.replace('_', ' ') }}</h3>
-            <p style="color: var(--text-light); font-size: 0.9em;">{{ info.origin }}</p>
-            <p style="color: var(--text-dark); font-weight: bold; margin-top: 5px;">{{ info.milk_yield }}</p>
-            <p style="color: var(--primary); font-size: 0.9em;">{{ info.type }}</p>
+    <h2 style="text-align:center; margin-bottom:24px; color:var(--text-dark);">Upload Cattle Image</h2>
+
+    <div class="upload-area" id="uploadArea">
+        <div style="font-size:3em; margin-bottom:12px;">📸</div>
+        <div style="font-size:1.05em; color:var(--text-dark); font-weight:500;">Click to upload or drag & drop</div>
+        <div style="color:var(--text-light); margin-top:6px; font-size:0.9em;">JPG, PNG — Max 16MB</div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    </div>
+
+    <div id="qualityWarning" class="quality-warning" style="display:none;">⚠️ Image may be blurry or too dark. Results may be less accurate.</div>
+
+    <!-- Skeleton loader -->
+    <div id="loading" style="display:none; margin-top:24px;">
+        <div class="skeleton" style="height:180px; margin-bottom:12px;"></div>
+        <div class="skeleton" style="height:24px; width:50%; margin:0 auto 10px;"></div>
+        <div class="skeleton" style="height:70px; margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:70px; margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:70px;"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" style="display:none; margin-top:32px;">
+        <img id="resultImage" style="max-width:360px; border-radius:12px; margin:0 auto 24px; display:block; box-shadow:var(--shadow);">
+        <h3 style="color:var(--text-dark); margin-bottom:16px;">Prediction Results</h3>
+        <div id="predictions"></div>
+        <div id="similarBreeds"></div>
+    </div>
+</div>
+
+<!-- Supported Breeds -->
+<div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+        <h3 style="color:var(--text-dark);">Supported Breeds <span style="color:var(--text-light); font-weight:400; font-size:0.85em;">({{ breeds|length }})</span></h3>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button onclick="filterBreeds('all')"    class="filter-btn active" id="f-all">All</button>
+            <button onclick="filterBreeds('Dairy')"  class="filter-btn" id="f-Dairy">🥛 Dairy</button>
+            <button onclick="filterBreeds('Draught')" class="filter-btn" id="f-Draught">💪 Draught</button>
+            <button onclick="filterBreeds('Dual Purpose')" class="filter-btn" id="f-Dual Purpose">⚡ Dual</button>
         </div>
+    </div>
+    <div id="breedsGrid" class="grid grid-4">
+        {% for breed, info in breeds.items() %}
+        <a href="/breed/{{ breed }}" class="breed-card" data-type="{{ info.type }}">
+            <div class="breed-card-icon">🐄</div>
+            <div class="breed-card-name">{{ breed.replace('_', ' ') }}</div>
+            <div class="breed-card-origin">{{ info.origin }}</div>
+            <div class="breed-card-badge breed-type-{{ info.type.replace(' ', '-') }}">{{ info.type }}</div>
+            <div class="breed-card-milk">🥛 {{ info.milk_yield }}</div>
+        </a>
         {% endfor %}
     </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-    const loading = document.getElementById('loading');
-    const results = document.getElementById('results');
+const uploadArea = document.getElementById('uploadArea');
+const fileInput  = document.getElementById('fileInput');
+const loading    = document.getElementById('loading');
+const results    = document.getElementById('results');
 
-    uploadArea.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFile);
+// Breed of the Day
+fetch('/breed-of-day').then(r => r.json()).then(d => {
+    document.getElementById('botdName').textContent = d.breed.replace(/_/g, ' ');
+    document.getElementById('botdInfo').textContent = `${d.info.origin} · ${d.info.type} · ${d.info.milk_yield}`;
+}).catch(() => {
+    document.getElementById('botdName').textContent = 'Gir';
+    document.getElementById('botdInfo').textContent = 'Gujarat · Dairy · 10-15 L/day';
+});
 
-    function handleFile() {
-        const file = fileInput.files[0];
-        if (!file) return;
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+uploadArea.addEventListener('drop', e => { e.preventDefault(); fileInput.files = e.dataTransfer.files; handleFile(); });
+fileInput.addEventListener('change', handleFile);
 
-        results.style.display = 'none';
-        loading.style.display = 'block';
+function checkImageQuality(file) {
+    return new Promise(resolve => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width; canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const data = ctx.getImageData(0, 0, img.width, img.height).data;
+            let brightness = 0;
+            for (let i = 0; i < data.length; i += 4) brightness += (data[i] + data[i+1] + data[i+2]) / 3;
+            brightness /= (data.length / 4);
+            URL.revokeObjectURL(url);
+            resolve(brightness < 40 || brightness > 230);
+        };
+        img.src = url;
+    });
+}
 
-        const formData = new FormData();
-        formData.append('file', file);
+function makeRing(pct) {
+    const r = 28, c = 2 * Math.PI * r, fill = (pct / 100) * c;
+    const color = pct >= 70 ? '#2d6a4f' : pct >= 50 ? '#f4a261' : '#e63946';
+    return `<div class="confidence-ring"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--bg-light)" stroke-width="7"/><circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-dasharray="${fill} ${c}" stroke-linecap="round"/></svg><div class="ring-text">${pct}%</div></div>`;
+}
 
-        fetch('/predict', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
+async function handleFile() {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    results.style.display = 'none';
+    loading.style.display = 'block';
+    document.getElementById('qualityWarning').style.display = 'none';
+
+    const lowQuality = await checkImageQuality(file);
+    if (lowQuality) document.getElementById('qualityWarning').style.display = 'block';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('/predict', { method: 'POST', body: formData })
+        .then(r => r.json())
         .then(data => {
             loading.style.display = 'none';
-            if (data.success) {
-                document.getElementById('resultImage').src = 'data:image/jpeg;base64,' + data.image;
-                
-                document.getElementById('predictions').innerHTML = '';
-                data.predictions.forEach((pred, idx) => {
-                    const div = document.createElement('div');
-                    div.style.cssText = 'background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--primary);';
-                    if (idx === 0) div.style.borderLeftWidth = '8px';
-                    
-                    div.innerHTML = `
-                        <div style="font-size: 1.5em; font-weight: bold; color: var(--text-dark);">${pred.breed.replace(/_/g, ' ')}</div>
-                        <div style="font-size: 1.2em; color: var(--primary); font-weight: bold; margin: 10px 0;">${pred.confidence}% confidence</div>
-                        <div style="color: var(--text-light); line-height: 1.6;">
-                            <strong>Origin:</strong> ${pred.info.origin}<br>
-                            <strong>Type:</strong> ${pred.info.type}<br>
-                            <strong>Milk Yield:</strong> ${pred.info.milk_yield}
+            if (!data.success) { showToast(data.error || 'Prediction failed', 'error'); return; }
+
+            document.getElementById('resultImage').src = 'data:image/jpeg;base64,' + data.image;
+            const predsEl = document.getElementById('predictions');
+            predsEl.innerHTML = '';
+
+            data.predictions.forEach((pred, idx) => {
+                const div = document.createElement('div');
+                div.style.cssText = `background:var(--bg-light); padding:18px 20px; border-radius:10px; margin-bottom:12px; border-left:4px solid var(--${idx === 0 ? 'primary' : 'accent'}); display:flex; justify-content:space-between; align-items:center; gap:16px;`;
+                const warning = pred.confidence < 50 ? `<div class="confidence-warning">⚠️ Low confidence — result may be inaccurate</div>` : '';
+                div.innerHTML = `
+                    <div style="flex:1">
+                        <div style="font-size:1.2em; font-weight:700; color:var(--text-dark);">${pred.breed.replace(/_/g, ' ')}</div>
+                        <div style="color:var(--text-light); font-size:0.88em; margin-top:5px; line-height:1.6;">
+                            <strong>Origin:</strong> ${pred.info.origin} &nbsp;·&nbsp;
+                            <strong>Type:</strong> ${pred.info.type} &nbsp;·&nbsp;
+                            <strong>Milk:</strong> ${pred.info.milk_yield}
                         </div>
-                    `;
-                    document.getElementById('predictions').appendChild(div);
-                });
-                
-                results.style.display = 'block';
-            }
+                        ${warning}
+                    </div>
+                    ${makeRing(Math.round(pred.confidence))}
+                `;
+                predsEl.appendChild(div);
+            });
+
+            const topBreed = data.predictions[0].breed;
+            const topConf  = data.predictions[0].confidence;
+
+            predsEl.insertAdjacentHTML('beforeend', `
+                <div style="margin-top:14px; padding:16px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border);">
+                    <div style="font-weight:600; color:var(--text-dark); margin-bottom:10px;">Was this prediction correct?</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button onclick="sendFeedback('${topBreed}', true)"  style="background:var(--primary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">✅ Yes</button>
+                        <button onclick="sendFeedback('${topBreed}', false)" style="background:#e63946;color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">❌ No</button>
+                        <button onclick="shareResult('${topBreed}', ${topConf})" style="background:var(--secondary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">🔗 Share</button>
+                    </div>
+                    <div id="feedbackMsg" style="margin-top:8px; color:var(--text-light); font-size:0.85em;"></div>
+                </div>
+            `);
+
+            window._lastImage = data.image;
+
+            fetch(`/similar-breeds/${topBreed}`).then(r => r.json()).then(s => {
+                if (!s.similar.length) return;
+                let html = '<div style="margin-top:20px"><h4 style="color:var(--text-dark);margin-bottom:12px;">Similar Breeds</h4><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+                s.similar.forEach(b => { html += `<a href="/breed/${b.name}" class="breed-pill">${b.name.replace(/_/g,' ')}</a>`; });
+                html += '</div></div>';
+                document.getElementById('similarBreeds').innerHTML = html;
+            });
+
+            results.style.display = 'block';
         })
-        .catch(err => {
-            loading.style.display = 'none';
-            alert('Error: ' + err.message);
-        });
-    }
+        .catch(err => { loading.style.display = 'none'; showToast('Error: ' + err.message, 'error'); });
+}
+
+function shareResult(breed, confidence) {
+    fetch('/create-share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ breed, confidence })
+    }).then(r => r.json()).then(d => {
+        if (d.success) {
+            const url = window.location.origin + '/share/' + d.share_id;
+            navigator.clipboard.writeText(url)
+                .then(() => showToast('Share link copied!', 'success'))
+                .catch(() => prompt('Copy this link:', url));
+        }
+    });
+}
+
+function sendFeedback(breed, correct) {
+    fetch('/submit-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ predicted: breed, correct })
+    }).then(() => {
+        document.getElementById('feedbackMsg').textContent = correct ? '✅ Thanks for confirming!' : '❌ Thanks for the feedback!';
+        showToast(correct ? 'Feedback saved!' : 'Thanks for correcting us!', correct ? 'success' : 'info');
+    });
+}
+
+function filterBreeds(type) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('f-' + type).classList.add('active');
+    document.querySelectorAll('.breed-card').forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
+    });
+}
 </script>
 {% endblock %}

@@ -33,6 +33,10 @@
         <div style="margin-top: 30px;">
             <canvas id="chart"></canvas>
         </div>
+        <div style="margin-top: 30px;">
+            <h3 style="color:var(--text-dark); margin-bottom:15px;">Attribute Radar</h3>
+            <canvas id="radarChart" style="max-height:350px;"></canvas>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -85,22 +89,47 @@
             const match = yield_str.match(/(\d+)-(\d+)/);
             return match ? (parseInt(match[1]) + parseInt(match[2])) / 2 : 0;
         });
-        
+
+        // Radar chart scores
+        function milkScore(b) {
+            const m = breedsData[b].milk_yield.match(/(\d+)-(\d+)/);
+            return m ? Math.round(((parseInt(m[1])+parseInt(m[2]))/2)/35*100) : 10;
+        }
+        function typeScore(b, attr) {
+            const t = breedsData[b].type;
+            if(attr==='dairy') return t==='Dairy'?100:t==='Dual Purpose'?60:20;
+            if(attr==='draught') return t==='Draught'?100:t==='Dual Purpose'?60:20;
+            return 50;
+        }
+
         if (window.myChart) window.myChart.destroy();
+        if (window.myRadar) window.myRadar.destroy();
+
         window.myChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: breeds.map(b => b.replace(/_/g, ' ')),
-                datasets: [{
-                    label: 'Average Milk Yield (L/day)',
-                    data: milkYields,
-                    backgroundColor: ['#667eea', '#764ba2', '#f093fb']
-                }]
+                datasets: [{ label: 'Avg Milk Yield (L/day)', data: milkYields, backgroundColor: ['#667eea','#764ba2','#f093fb'] }]
             },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } }
-            }
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        const colors = ['rgba(102,126,234,0.4)','rgba(118,75,162,0.4)','rgba(240,147,251,0.4)'];
+        const borderColors = ['#667eea','#764ba2','#f093fb'];
+        window.myRadar = new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Milk Yield','Dairy','Draught','Versatility'],
+                datasets: breeds.map((b,i) => ({
+                    label: b.replace(/_/g,' '),
+                    data: [milkScore(b), typeScore(b,'dairy'), typeScore(b,'draught'), breedsData[b].type==='Dual Purpose'?90:40],
+                    backgroundColor: colors[i],
+                    borderColor: borderColors[i],
+                    borderWidth: 2
+                }))
+            },
+            options: { scales: { r: { beginAtZero: true, max: 100 } } }
         });
         
         document.getElementById('results').style.display = 'block';

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Breed Quiz{% endblock %}
+{% block content %}
+<h1 style="color:white; margin-bottom:20px;">🎯 Breed Quiz</h1>
+<div class="card" style="max-width:600px; margin:0 auto; text-align:center;">
+    <div id="startScreen">
+        <div style="font-size:4em; margin-bottom:20px;">🐄</div>
+        <h2 style="color:var(--text-dark); margin-bottom:10px;">Test Your Knowledge!</h2>
+        <p style="color:var(--text-light); margin-bottom:25px;">Guess the cattle breed from its description. 10 questions, 10 seconds each.</p>
+        <button onclick="startQuiz()" class="btn btn-primary" style="font-size:1.1em; padding:15px 40px;">Start Quiz</button>
+    </div>
+
+    <div id="quizScreen" style="display:none;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <span style="color:var(--text-light);">Question <span id="qNum">1</span>/10</span>
+            <span id="timer" style="color:var(--primary); font-weight:bold; font-size:1.2em;">⏱ 10s</span>
+            <span style="color:var(--text-light);">Score: <span id="score">0</span></span>
+        </div>
+        <div style="background:var(--bg-light); border-radius:15px; padding:25px; margin-bottom:25px;">
+            <div id="question" style="font-size:1.1em; color:var(--text-dark); line-height:1.7;"></div>
+        </div>
+        <div id="options" class="grid grid-2" style="gap:12px;"></div>
+        <div id="feedback" style="margin-top:15px; font-size:1.1em; font-weight:bold; min-height:30px;"></div>
+    </div>
+
+    <div id="resultScreen" style="display:none;">
+        <div style="font-size:4em; margin-bottom:15px;" id="resultEmoji">🏆</div>
+        <h2 style="color:var(--text-dark); margin-bottom:10px;">Quiz Complete!</h2>
+        <div class="stat-card" style="margin:20px 0;">
+            <div class="stat-value" id="finalScore"></div>
+            <div class="stat-label">out of 10</div>
+        </div>
+        <p id="resultMsg" style="color:var(--text-light); margin-bottom:25px;"></p>
+        <button onclick="startQuiz()" class="btn btn-primary">Play Again</button>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const breeds = {{ breeds_json|safe }};
+const breedList = Object.entries(breeds);
+let questions = [], current = 0, score = 0, timer, timeLeft;
+
+function makeQuestion(entry) {
+    const [name, info] = entry;
+    const wrong = breedList.filter(b=>b[0]!==name).sort(()=>Math.random()-0.5).slice(0,3).map(b=>b[0]);
+    const opts = [name, ...wrong].sort(()=>Math.random()-0.5);
+    return {
+        q: `Which breed originates from <strong>${info.origin}</strong>, is a <strong>${info.type}</strong> breed, and yields <strong>${info.milk_yield}</strong>?`,
+        answer: name,
+        options: opts
+    };
+}
+
+function startQuiz() {
+    questions = breedList.sort(()=>Math.random()-0.5).slice(0,10).map(makeQuestion);
+    current = 0; score = 0;
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'none';
+    document.getElementById('quizScreen').style.display = 'block';
+    showQuestion();
+}
+
+function showQuestion() {
+    clearInterval(timer);
+    timeLeft = 10;
+    const q = questions[current];
+    document.getElementById('qNum').textContent = current + 1;
+    document.getElementById('score').textContent = score;
+    document.getElementById('question').innerHTML = q.q;
+    document.getElementById('feedback').textContent = '';
+    const opts = document.getElementById('options');
+    opts.innerHTML = '';
+    q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.replace(/_/g,' ');
+        btn.style.cssText = 'background:var(--bg-light);border:2px solid var(--primary);color:var(--text-dark);padding:12px;border-radius:10px;cursor:pointer;font-size:0.95em;transition:all 0.2s;';
+        btn.onmouseover = () => btn.style.background = 'rgba(102,126,234,0.1)';
+        btn.onmouseout = () => { if(!btn.disabled) btn.style.background = 'var(--bg-light)'; };
+        btn.onclick = () => answer(opt, btn);
+        opts.appendChild(btn);
+    });
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = `⏱ ${timeLeft}s`;
+        if(timeLeft <= 0) { clearInterval(timer); answer(null, null); }
+    }, 1000);
+}
+
+function answer(chosen, btn) {
+    clearInterval(timer);
+    const q = questions[current];
+    document.querySelectorAll('#options button').forEach(b => {
+        b.disabled = true;
+        if(b.textContent === q.answer.replace(/_/g,' ')) b.style.background = '#2ed573';
+        else if(b === btn) b.style.background = '#ff4757';
+    });
+    if(chosen === q.answer) { score++; document.getElementById('feedback').innerHTML = '<span style="color:#2ed573">✅ Correct!</span>'; }
+    else if(!chosen) { document.getElementById('feedback').innerHTML = `<span style="color:#ff4757">⏰ Time's up! Answer: ${q.answer.replace(/_/g,' ')}</span>`; }
+    else { document.getElementById('feedback').innerHTML = `<span style="color:#ff4757">❌ Wrong! Answer: ${q.answer.replace(/_/g,' ')}</span>`; }
+    setTimeout(() => {
+        current++;
+        if(current < 10) showQuestion();
+        else showResult();
+    }, 1500);
+}
+
+function showResult() {
+    document.getElementById('quizScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'block';
+    document.getElementById('finalScore').textContent = score;
+    const msgs = ['Keep practicing! 💪', 'Not bad! 👍', 'Good job! 🌟', 'Excellent! 🎉', 'Perfect score! 🏆'];
+    const idx = Math.floor(score/3);
+    document.getElementById('resultMsg').textContent = msgs[Math.min(idx, msgs.length-1)];
+    document.getElementById('resultEmoji').textContent = score === 10 ? '🏆' : score >= 7 ? '🌟' : score >= 4 ? '👍' : '💪';
+}
+</script>
+{% endblock %}

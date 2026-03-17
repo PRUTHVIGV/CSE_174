@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Prediction - {{ data.breed.replace('_',' ') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div class="card" style="max-width:500px; width:100%; text-align:center;">
+        <div style="font-size:4em; margin-bottom:15px;">🐄</div>
+        <h1 style="color:var(--primary); margin-bottom:5px;">{{ data.breed.replace('_',' ') }}</h1>
+        <div style="font-size:2em; font-weight:bold; color:var(--text-dark); margin-bottom:20px;">{{ data.confidence }}% confidence</div>
+        <div style="background:var(--bg-light); padding:20px; border-radius:12px; margin-bottom:20px; text-align:left; line-height:2;">
+            <div>📍 <strong>Origin:</strong> {{ data.info.get('origin','N/A') }}</div>
+            <div>🐄 <strong>Type:</strong> {{ data.info.get('type','N/A') }}</div>
+            <div>🥛 <strong>Milk Yield:</strong> {{ data.info.get('milk_yield','N/A') }}</div>
+        </div>
+        <div style="color:var(--text-light); font-size:0.85em; margin-bottom:20px;">
+            Shared by <strong>{{ data.user }}</strong> on {{ data.timestamp }}
+        </div>
+        <a href="/" class="btn btn-primary" style="text-decoration:none;">Try It Yourself 🐄</a>
+    </div>
+</div>
+</body>
+</html>

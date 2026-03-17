@@ -1,50 +1,91 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ breed.name }} Details</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { text-align: center; color: white; margin-bottom: 40px; }
-        .back-btn { background: white; color: #667eea; padding: 10px 20px; border-radius: 20px; text-decoration: none; display: inline-block; margin-bottom: 20px; }
-        .card { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .breed-header { text-align: center; margin-bottom: 30px; }
-        .breed-header h1 { color: #667eea; font-size: 2.5em; }
-        .breed-header .hindi { font-size: 1.5em; color: #666; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .info-box { background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 5px solid #667eea; }
-        .info-label { font-weight: bold; color: #667eea; }
-        .info-value { color: #333; font-size: 1.1em; margin-top: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <a href="/" class="back-btn">Back to Home</a>
+{% extends "base.html" %}
+{% block title %}{{ breed_name.replace('_', ' ') }} - Cattle Breed Recognition{% endblock %}
+
+{% block content %}
+
+<div style="margin-bottom:20px;">
+    <a href="/" class="breed-pill" style="font-size:0.9em;">← Back to Home</a>
+</div>
+
+<div class="card">
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:28px; flex-wrap:wrap;">
+        <div style="background:var(--primary); color:white; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2em; flex-shrink:0;">🐄</div>
+        <div>
+            <h1 style="color:var(--text-dark); font-size:2em;">{{ breed_name.replace('_', ' ') }}</h1>
+            <span style="background:var(--bg-light); color:var(--primary); padding:4px 12px; border-radius:20px; font-size:0.85em; border:1px solid var(--border);">{{ breed_info.type }}</span>
         </div>
-        <div class="card">
-            <div class="breed-header">
-                <h1>{{ breed.name.replace('_', ' ') }}</h1>
-                <div class="hindi">{{ breed.hindi }}</div>
-            </div>
-            <div class="info-grid">
-                <div class="info-box">
-                    <div class="info-label">Origin</div>
-                    <div class="info-value">{{ breed.origin }}</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Type</div>
-                    <div class="info-value">{{ breed.type }}</div>
-                </div>
-                <div class="info-box">
-                    <div class="info-label">Milk Yield</div>
-                    <div class="info-value">{{ breed.milk_yield }}</div>
-                </div>
-            </div>
+        {% if is_favorite %}
+        <button onclick="toggleFav()" id="favBtn" style="margin-left:auto; background:#e63946; color:white; border:none; padding:8px 18px; border-radius:8px; cursor:pointer; font-size:0.9em;">❤️ Saved</button>
+        {% else %}
+        <button onclick="toggleFav()" id="favBtn" style="margin-left:auto; background:var(--bg-light); color:var(--primary); border:1px solid var(--border); padding:8px 18px; border-radius:8px; cursor:pointer; font-size:0.9em;">🤍 Save</button>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-3" style="margin-bottom:28px;">
+        <div style="background:var(--bg-light); padding:20px; border-radius:12px; border:1px solid var(--border); text-align:center;">
+            <div style="font-size:1.8em; margin-bottom:6px;">📍</div>
+            <div style="color:var(--text-light); font-size:0.8em; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Origin</div>
+            <div style="color:var(--text-dark); font-weight:600; font-size:1.05em;">{{ breed_info.origin }}</div>
+        </div>
+        <div style="background:var(--bg-light); padding:20px; border-radius:12px; border:1px solid var(--border); text-align:center;">
+            <div style="font-size:1.8em; margin-bottom:6px;">🏷️</div>
+            <div style="color:var(--text-light); font-size:0.8em; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Type</div>
+            <div style="color:var(--text-dark); font-weight:600; font-size:1.05em;">{{ breed_info.type }}</div>
+        </div>
+        <div style="background:var(--bg-light); padding:20px; border-radius:12px; border:1px solid var(--border); text-align:center;">
+            <div style="font-size:1.8em; margin-bottom:6px;">🥛</div>
+            <div style="color:var(--text-light); font-size:0.8em; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Milk Yield</div>
+            <div style="color:var(--text-dark); font-weight:600; font-size:1.05em;">{{ breed_info.milk_yield }}</div>
         </div>
     </div>
-</body>
-</html>
+
+    <!-- Similar breeds -->
+    <div id="similarSection" style="display:none;">
+        <h3 style="color:var(--text-dark); margin-bottom:12px;">Similar Breeds</h3>
+        <div id="similarList" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const breedName = "{{ breed_name }}";
+
+fetch(`/similar-breeds/${breedName}`).then(r => r.json()).then(s => {
+    if (!s.similar.length) return;
+    document.getElementById('similarSection').style.display = 'block';
+    const list = document.getElementById('similarList');
+    s.similar.forEach(b => {
+        const a = document.createElement('a');
+        a.href = `/breed/${b.name}`;
+        a.className = 'breed-pill';
+        a.textContent = b.name.replace(/_/g, ' ');
+        list.appendChild(a);
+    });
+});
+
+function toggleFav() {
+    fetch('/toggle-favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ breed: breedName })
+    }).then(r => r.json()).then(d => {
+        const btn = document.getElementById('favBtn');
+        if (d.action === 'added') {
+            btn.textContent = '❤️ Saved';
+            btn.style.background = '#e63946';
+            btn.style.color = 'white';
+            btn.style.border = 'none';
+            showToast('Added to favorites!', 'success');
+        } else {
+            btn.textContent = '🤍 Save';
+            btn.style.background = 'var(--bg-light)';
+            btn.style.color = 'var(--primary)';
+            btn.style.border = '1px solid var(--border)';
+            showToast('Removed from favorites', 'info');
+        }
+    });
+}
+</script>
+{% endblock %}

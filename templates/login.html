@@ -16,6 +16,10 @@
             <form id="loginForm">
                 <input type="email" id="email" placeholder="Email" required>
                 <input type="password" id="password" placeholder="Password" required>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:15px;">
+                    <input type="checkbox" id="rememberMe" style="width:auto; margin:0;">
+                    <label for="rememberMe" style="color:var(--text-light); font-size:0.9em; cursor:pointer;">Remember me</label>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">Login</button>
             </form>
 
@@ -51,10 +55,17 @@
             });
         }
 
+        // Auto-fill remembered email
+        const remembered = localStorage.getItem('rememberedEmail');
+        if(remembered) { document.getElementById('email').value = remembered; document.getElementById('rememberMe').checked = true; }
+
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const remember = document.getElementById('rememberMe').checked;
+            if(remember) localStorage.setItem('rememberedEmail', email);
+            else localStorage.removeItem('rememberedEmail');
 
             fetch('/login', {
                 method: 'POST',
@@ -63,11 +74,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    window.location.href = '/';
-                } else {
-                    alert(data.error || 'Login failed');
-                }
+                if (data.success) { window.location.href = '/'; }
+                else { alert(data.error || 'Login failed'); }
             });
         });
     </script>

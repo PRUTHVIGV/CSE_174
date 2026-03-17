@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel{% endblock %}
+{% block content %}
+<h1 style="color:white; margin-bottom:20px;">⚙️ Admin Panel</h1>
+
+<div class="grid grid-4" style="margin-bottom:20px;">
+    <div class="stat-card">
+        <div class="stat-value">{{ users|length }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_preds }}</div>
+        <div class="stat-label">Total Predictions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ accuracy }}%</div>
+        <div class="stat-label">Feedback Accuracy</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ '✅' if model_loaded else '❌' }}</div>
+        <div class="stat-label">Model Loaded</div>
+        <button onclick="retrainModel()" style="margin-top:10px;background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85em;">🔄 Retrain</button>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+    <h2 style="color:var(--text-dark); margin-bottom:20px;">👥 Users</h2>
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:var(--bg-light);">
+                    <th style="padding:12px; text-align:left; color:var(--text-light);">Name</th>
+                    <th style="padding:12px; text-align:left; color:var(--text-light);">Email</th>
+                    <th style="padding:12px; text-align:left; color:var(--text-light);">Joined</th>
+                    <th style="padding:12px; text-align:left; color:var(--text-light);">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for email, data in users.items() %}
+                <tr style="border-bottom:1px solid var(--bg-light);">
+                    <td style="padding:12px; color:var(--text-dark);">{{ data.name }}</td>
+                    <td style="padding:12px; color:var(--text-light);">{{ email }}</td>
+                    <td style="padding:12px; color:var(--text-light);">{{ data.get('created_at','N/A')[:10] }}</td>
+                    <td style="padding:12px;">
+                        <button onclick="deleteUser('{{ email }}')" style="background:#ff4757;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:0.85em;">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="color:var(--text-dark); margin-bottom:20px;">📝 Recent Feedback</h2>
+    {% if feedback %}
+    {% for f in feedback %}
+    <div style="background:var(--bg-light); padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <strong style="color:var(--text-dark);">{{ f.predicted.replace('_',' ') }}</strong>
+            <span style="color:var(--text-light); font-size:0.85em; margin-left:10px;">{{ f.user }}</span>
+        </div>
+        <div>
+            {% if f.correct %}
+            <span style="color:#2ed573; font-weight:bold;">✅ Correct</span>
+            {% else %}
+            <span style="color:#ff4757; font-weight:bold;">❌ Wrong</span>
+            {% endif %}
+            <span style="color:var(--text-light); font-size:0.8em; margin-left:10px;">{{ f.timestamp[:10] }}</span>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color:var(--text-light); text-align:center; padding:20px;">No feedback yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function retrainModel() {
+    if(!confirm('Start model retraining? This runs in background and may take ~5 minutes.')) return;
+    fetch('/admin/retrain', {method:'POST'})
+        .then(r=>r.json()).then(d=>{ showToast(d.message || d.error, d.success ? 'success' : 'error'); });
+}
+function deleteUser(email) {
+    if(!confirm(`Delete user ${email}?`)) return;
+    fetch(`/admin/delete-user/${email}`, {method:'POST'})
+        .then(r=>r.json()).then(d=>{ if(d.success){ showToast('User deleted'); location.reload(); } });
+}
+</script>
+{% endblock %}
