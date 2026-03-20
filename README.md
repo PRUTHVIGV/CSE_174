@@ -4,9 +4,18 @@
 
 ## 🌐 Live Website
 
-**[https://cse-174.onrender.com](https://cse-174.onrender.com)**
+> **Not deployed yet** — follow the steps below to deploy for free on Render.
+>
+> ### Deploy on Render (Free)
+> 1. Go to [https://render.com](https://render.com) and sign in with GitHub
+> 2. Click **New → Web Service**
+> 3. Connect your repo: `PRUTHVIGV/CSE_174`
+> 4. Set **Root Directory** to `cattle_breed_recognition`
+> 5. Set **Build Command**: `pip install -r requirements.txt`
+> 6. Set **Start Command**: `gunicorn app:app`
+> 7. Click **Deploy** — your live URL will be `https://your-app-name.onrender.com`
+> 8. Paste that URL in the GitHub repo **About → Website** field
 
-> Deployed on Render — may take ~30 seconds to wake up on first visit (free tier).
 
 ## ⚡ Quick Start
 
