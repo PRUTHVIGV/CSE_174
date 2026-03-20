@@ -1,58 +1,67 @@
 {% extends "base.html" %}
-
 {% block title %}History{% endblock %}
 
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-    <h1 style="color: white;">📜 Prediction History</h1>
-    <div style="display:flex; gap:10px; align-items:center;">
-        <span id="streakBadge" class="streak-badge">🔥 Loading streak...</span>
-        <a href="/export-pdf" style="background:white;color:var(--primary);padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">📄 Export PDF</a>
-        <a href="/export-csv" style="background:white;color:#2ed573;padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">📊 Export CSV</a>
-        <button onclick="window.print()" style="background:white;color:#764ba2;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:bold;">🖨 Print</button>
-        <button onclick="clearHistory()" style="background:#ff4757;color:white;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:bold;">🗑 Clear</button>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <h2 style="color:var(--text-dark);">📜 Prediction History</h2>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span id="streakBadge" class="streak-badge">🔥 Loading...</span>
+        <a href="/export-csv" class="btn btn-primary" style="font-size:0.85em; padding:8px 16px;">📊 CSV</a>
+        <a href="/export-pdf" class="btn btn-primary" style="font-size:0.85em; padding:8px 16px;">📄 PDF</a>
+        <button onclick="clearHistory()" style="background:#e63946; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer; font-size:0.85em; font-weight:600;">🗑 Clear</button>
     </div>
 </div>
 
 <div class="card">
     <div id="skeletonLoader">
         {% for i in range(5) %}
-        <div class="skeleton" style="height:70px; margin-bottom:12px;"></div>
+        <div class="skeleton" style="height:64px; margin-bottom:10px;"></div>
         {% endfor %}
     </div>
+
     <div id="historyContent" style="display:none;">
-    {% if history %}
-        {% for item in history|reverse %}
-        <div style="background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-size: 1.3em; font-weight: bold; color: var(--text-dark);">{{ item.breed.replace('_', ' ') }}</div>
-                <div style="color: var(--text-light); font-size: 0.9em; margin-top: 5px;">{{ item.timestamp }}</div>
+        {% if history %}
+            {% for item in history|reverse %}
+            <div style="background:var(--bg-light); padding:16px 20px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border);">
+                <div>
+                    <div style="font-weight:600; color:var(--text-dark); font-size:1.05em;">{{ item.breed.replace('_', ' ') }}</div>
+                    <div style="color:var(--text-light); font-size:0.82em; margin-top:3px;">{{ item.timestamp[:16].replace('T', ' ') }}</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <span style="background:var(--primary); color:white; padding:4px 12px; border-radius:20px; font-weight:600; font-size:0.9em;">{{ item.confidence }}%</span>
+                    <a href="/breed/{{ item.breed }}" style="color:var(--primary); font-size:0.85em; text-decoration:none;">View →</a>
+                </div>
             </div>
-            <div style="color: var(--primary); font-weight: bold; font-size: 1.2em;">{{ item.confidence }}%</div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div style="text-align: center; color: var(--text-light); padding: 60px 40px;">
-            <div style="font-size:5em; margin-bottom:20px;">📭</div>
-            <h3 style="color:var(--text-dark); margin-bottom:10px;">No predictions yet</h3>
-            <p style="margin-bottom:20px;">Upload a cattle image to get started!</p>
-            <a href="/" class="btn btn-primary">Upload Image →</a>
-        </div>
-    {% endif %}
+            {% endfor %}
+        {% else %}
+            <div style="text-align:center; padding:60px 20px;">
+                <div style="font-size:4em; margin-bottom:16px;">📭</div>
+                <h3 style="color:var(--text-dark); margin-bottom:8px;">No predictions yet</h3>
+                <p style="color:var(--text-light); margin-bottom:20px;">Upload a cattle image to get started!</p>
+                <a href="/" class="btn btn-primary">Upload Image →</a>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    fetch('/streak').then(r=>r.json()).then(d=>{
-        document.getElementById('streakBadge').textContent = `🔥 ${d.streak} day streak · ${d.total_days} active days`;
-        document.getElementById('skeletonLoader').style.display = 'none';
-        document.getElementById('historyContent').style.display = 'block';
+fetch('/streak').then(r => r.json()).then(d => {
+    document.getElementById('streakBadge').textContent = `🔥 ${d.streak} day streak · ${d.total_days} active days`;
+    document.getElementById('skeletonLoader').style.display = 'none';
+    document.getElementById('historyContent').style.display = 'block';
+}).catch(() => {
+    document.getElementById('skeletonLoader').style.display = 'none';
+    document.getElementById('historyContent').style.display = 'block';
+});
+
+function clearHistory() {
+    if (!confirm('Clear all prediction history?')) return;
+    fetch('/clear-history', { method: 'POST' }).then(() => {
+        showToast('History cleared!', 'success');
+        setTimeout(() => location.reload(), 1000);
     });
-    function clearHistory(){
-        if(!confirm('Clear all history?')) return;
-        fetch('/clear-history',{method:'POST'}).then(()=>{ showToast('History cleared!'); setTimeout(()=>location.reload(), 1000); });
-    }
+}
 </script>
 {% endblock %}

@@ -1,44 +1,33 @@
 {% extends "base.html" %}
-
 {% block title %}Search Breeds{% endblock %}
 
 {% block content %}
-<h1 style="text-align: center; color: white; margin-bottom: 30px;">🔍 Search Breeds</h1>
-
 <div class="card">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px;">
-        <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="filterBreeds()">
-        <select id="originFilter" onchange="filterBreeds()">
+    <h2 style="color:var(--text-dark); margin-bottom:20px;">🔍 Search Breeds</h2>
+    <div style="display:grid; grid-template-columns:1fr auto auto; gap:10px; margin-bottom:16px;">
+        <input type="text" id="searchInput" placeholder="Search by name..." oninput="filterBreeds()" style="margin-bottom:0;">
+        <select id="originFilter" onchange="filterBreeds()" style="margin-bottom:0; width:auto;">
             <option value="">All Origins</option>
-            <option value="Gujarat">Gujarat</option>
-            <option value="Punjab">Punjab</option>
-            <option value="Rajasthan">Rajasthan</option>
-            <option value="Haryana">Haryana</option>
-            <option value="Tamil Nadu">Tamil Nadu</option>
-            <option value="Karnataka">Karnataka</option>
-            <option value="Maharashtra">Maharashtra</option>
+            <option>Gujarat</option><option>Punjab</option><option>Rajasthan</option>
+            <option>Haryana</option><option>Tamil Nadu</option><option>Karnataka</option>
+            <option>Maharashtra</option><option>Kerala</option><option>Uttar Pradesh</option>
         </select>
-        <select id="typeFilter" onchange="filterBreeds()">
+        <select id="typeFilter" onchange="filterBreeds()" style="margin-bottom:0; width:auto;">
             <option value="">All Types</option>
-            <option value="Dairy">Dairy</option>
-            <option value="Draught">Draught</option>
-            <option value="Dual Purpose">Dual Purpose</option>
+            <option>Dairy</option><option>Draught</option><option>Dual Purpose</option>
         </select>
     </div>
-
-    <div id="breedCount" style="margin-bottom: 20px; color: var(--text-light); font-weight: 600;"></div>
-
+    <div id="breedCount" style="color:var(--text-light); font-size:0.88em; margin-bottom:16px;"></div>
     <div class="grid grid-4" id="breedsGrid">
         {% for breed, info in breeds.items() %}
-        <div class="breed-item" data-name="{{ breed }}" data-origin="{{ info.origin }}" data-type="{{ info.type }}">
-            <div style="background: linear-gradient(135deg, var(--bg-light) 0%, rgba(102, 126, 234, 0.05) 100%); padding: 25px; border-radius: 15px; text-align: center; border: 2px solid transparent; transition: all 0.3s; cursor: pointer; position: relative;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='translateY(-5px)'" onmouseout="this.style.borderColor='transparent'; this.style.transform='translateY(0)'">
-                <button onclick="toggleFavorite('{{ breed }}', event)" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.3em; transition: all 0.3s;" id="fav-{{ breed }}">⭐</button>
-                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1em;">{{ breed.replace('_', ' ') }}</h3>
-                <p style="color: var(--text-light); font-size: 0.9em; margin: 5px 0;">📍 {{ info.origin }}</p>
-                <p style="color: var(--text-dark); font-weight: bold; margin: 5px 0;">🥛 {{ info.milk_yield }}</p>
-                <p style="color: var(--primary); font-size: 0.9em; background: rgba(102, 126, 234, 0.1); padding: 5px 10px; border-radius: 15px; display: inline-block; margin-top: 5px;">{{ info.type }}</p>
-            </div>
-        </div>
+        <a href="/breed/{{ breed }}" class="breed-card" data-name="{{ breed }}" data-origin="{{ info.origin }}" data-type="{{ info.type }}">
+            <div class="breed-card-icon">🐄</div>
+            <div class="breed-card-name">{{ breed.replace('_', ' ') }}</div>
+            <div class="breed-card-origin">{{ info.origin }}</div>
+            <div class="breed-card-badge breed-type-{{ info.type.replace(' ', '-') }}">{{ info.type }}</div>
+            <div class="breed-card-milk">🥛 {{ info.milk_yield }}</div>
+            <button onclick="toggleFav('{{ breed }}', event)" class="fav-btn" id="fav-{{ breed }}">🤍</button>
+        </a>
         {% endfor %}
     </div>
 </div>
@@ -46,56 +35,36 @@
 
 {% block scripts %}
 <script>
-    function filterBreeds() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const originFilter = document.getElementById('originFilter').value;
-        const typeFilter = document.getElementById('typeFilter').value;
-        
-        const items = document.querySelectorAll('.breed-item');
-        let visibleCount = 0;
-        
-        items.forEach(item => {
-            const name = item.dataset.name.toLowerCase().replace(/_/g, ' ');
-            const origin = item.dataset.origin;
-            const type = item.dataset.type;
-            
-            const matchesSearch = name.includes(searchTerm);
-            const matchesOrigin = !originFilter || origin.includes(originFilter);
-            const matchesType = !typeFilter || type === typeFilter;
-            
-            if (matchesSearch && matchesOrigin && matchesType) {
-                item.style.display = 'block';
-                visibleCount++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        
-        document.getElementById('breedCount').textContent = `Showing ${visibleCount} of ${items.length} breeds`;
-    }
-    
-    function toggleFavorite(breed, event) {
-        event.stopPropagation();
-        fetch('/toggle-favorite', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({breed: breed})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                const btn = document.getElementById('fav-' + breed);
-                if (data.action === 'added') {
-                    btn.style.background = '#ffd700';
-                    btn.textContent = '⭐';
-                } else {
-                    btn.style.background = 'rgba(255,255,255,0.9)';
-                    btn.textContent = '☆';
-                }
-            }
-        });
-    }
-    
-    filterBreeds();
+function filterBreeds() {
+    const q      = document.getElementById('searchInput').value.toLowerCase();
+    const origin = document.getElementById('originFilter').value;
+    const type   = document.getElementById('typeFilter').value;
+    let count = 0;
+    document.querySelectorAll('.breed-card').forEach(card => {
+        const name = card.dataset.name.toLowerCase().replace(/_/g, ' ');
+        const show = name.includes(q)
+            && (!origin || card.dataset.origin.includes(origin))
+            && (!type   || card.dataset.type === type);
+        card.style.display = show ? '' : 'none';
+        if (show) count++;
+    });
+    const total = document.querySelectorAll('.breed-card').length;
+    document.getElementById('breedCount').textContent = `Showing ${count} of ${total} breeds`;
+}
+
+function toggleFav(breed, e) {
+    e.preventDefault(); e.stopPropagation();
+    fetch('/toggle-favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ breed })
+    }).then(r => r.json()).then(d => {
+        const btn = document.getElementById('fav-' + breed);
+        btn.textContent = d.action === 'added' ? '❤️' : '🤍';
+        showToast(d.action === 'added' ? 'Added to favorites!' : 'Removed from favorites', d.action === 'added' ? 'success' : 'info');
+    });
+}
+
+filterBreeds();
 </script>
 {% endblock %}

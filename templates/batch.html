@@ -1,160 +1,123 @@
 {% extends "base.html" %}
-
 {% block title %}Batch Upload{% endblock %}
 
 {% block content %}
-<h1 style="text-align: center; color: white; margin-bottom: 30px;">📤 Batch Upload</h1>
+<h2 style="color:var(--text-dark); margin-bottom:20px;">📤 Batch Upload</h2>
 
 <div class="card">
-    <h2 style="color: var(--text-dark); margin-bottom: 20px;">Upload Multiple Images</h2>
-    
     <div class="upload-area" id="batchUploadArea">
-        <div style="font-size: 4em; margin-bottom: 20px;">📁</div>
-        <div style="font-size: 1.2em; color: var(--text-dark);">Click or drag multiple images</div>
-        <div style="color: var(--text-light); margin-top: 10px;">Max 10 images at once</div>
-        <input type="file" id="batchInput" accept="image/*" multiple style="display: none;">
+        <div style="font-size:3em; margin-bottom:12px;">📁</div>
+        <div style="font-size:1.05em; color:var(--text-dark); font-weight:500;">Click or drag multiple images</div>
+        <div style="color:var(--text-light); margin-top:6px; font-size:0.9em;">Max 10 images · JPG, PNG</div>
+        <input type="file" id="batchInput" accept="image/*" multiple style="display:none;">
     </div>
 
-    <div id="fileList" style="margin-top: 30px; display: none;">
-        <h3 style="color: var(--text-dark); margin-bottom: 15px;">Selected Files (<span id="fileCount">0</span>)</h3>
+    <div id="fileList" style="display:none; margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="color:var(--text-dark);">Selected Files (<span id="fileCount">0</span>)</h3>
+            <button onclick="processBatch()" class="btn btn-primary">🔍 Predict All</button>
+        </div>
         <div id="files"></div>
-        <button class="btn btn-primary" onclick="processBatch()" style="width: 100%; margin-top: 20px;">Process All Images</button>
     </div>
 
-    <div id="batchResults" style="margin-top: 30px; display: none;">
-        <h3 style="color: var(--text-dark); margin-bottom: 15px;">Results</h3>
+    <div id="progressWrap" style="display:none; margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <span style="color:var(--text-dark); font-weight:600;">Processing...</span>
+            <span id="progressText" style="color:var(--text-light); font-size:0.9em;">0 / 0</span>
+        </div>
+        <div style="background:var(--bg-light); border-radius:10px; height:10px; overflow:hidden;">
+            <div id="progressBar" style="background:var(--primary); height:100%; width:0%; border-radius:10px; transition:width 0.3s;"></div>
+        </div>
+    </div>
+
+    <div id="batchResults" style="display:none; margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="color:var(--text-dark);">Results</h3>
+            <button onclick="downloadCSV()" class="btn btn-primary" style="font-size:0.85em; padding:8px 16px;">📥 Download CSV</button>
+        </div>
         <div id="results"></div>
-        <button class="btn btn-primary" onclick="downloadResults()" style="width: 100%; margin-top: 20px;">📥 Download Results (CSV)</button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    let selectedFiles = [];
-    let results = [];
+let selectedFiles = [];
+let batchResults  = [];
 
-    const batchUploadArea = document.getElementById('batchUploadArea');
-    const batchInput = document.getElementById('batchInput');
+const area  = document.getElementById('batchUploadArea');
+const input = document.getElementById('batchInput');
 
-    batchUploadArea.addEventListener('click', () => batchInput.click());
-    batchInput.addEventListener('change', handleFiles);
+area.addEventListener('click', () => input.click());
+area.addEventListener('dragover', e => { e.preventDefault(); area.style.borderColor = 'var(--primary)'; });
+area.addEventListener('dragleave', () => { area.style.borderColor = ''; });
+area.addEventListener('drop', e => {
+    e.preventDefault(); area.style.borderColor = '';
+    displayFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')).slice(0, 10));
+});
+input.addEventListener('change', e => displayFiles(Array.from(e.target.files).slice(0, 10)));
 
-    batchUploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        batchUploadArea.style.borderColor = 'var(--secondary)';
-        batchUploadArea.style.background = 'rgba(102,126,234,0.1)';
-        batchUploadArea.style.transform = 'scale(1.02)';
+function displayFiles(files) {
+    selectedFiles = files;
+    document.getElementById('fileCount').textContent = files.length;
+    document.getElementById('fileList').style.display = 'block';
+    const filesDiv = document.getElementById('files');
+    filesDiv.innerHTML = '';
+    files.forEach(f => {
+        filesDiv.innerHTML += `<div style="background:var(--bg-light); padding:12px 16px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; border:1px solid var(--border);">
+            <span style="color:var(--text-dark);">${f.name}</span>
+            <span style="color:var(--text-light); font-size:0.85em;">${(f.size/1024).toFixed(1)} KB</span>
+        </div>`;
     });
+}
 
-    batchUploadArea.addEventListener('dragleave', () => {
-        batchUploadArea.style.borderColor = 'var(--primary)';
-        batchUploadArea.style.background = '';
-        batchUploadArea.style.transform = '';
-    });
+async function processBatch() {
+    batchResults = [];
+    document.getElementById('progressWrap').style.display = 'block';
+    document.getElementById('batchResults').style.display = 'none';
+    const total = selectedFiles.length;
 
-    batchUploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        batchUploadArea.style.borderColor = 'var(--primary)';
-        batchUploadArea.style.background = '';
-        batchUploadArea.style.transform = '';
-        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-        displayFiles(files);
-        showToast(`${files.length} file(s) added`, 'success');
-    });
-
-    function handleFiles(e) {
-        const files = Array.from(e.target.files).slice(0, 10);
-        displayFiles(files);
-    }
-
-    function displayFiles(files) {
-        selectedFiles = files;
-        document.getElementById('fileCount').textContent = files.length;
-        document.getElementById('fileList').style.display = 'block';
-        
-        const filesDiv = document.getElementById('files');
-        filesDiv.innerHTML = '';
-        
-        files.forEach((file, idx) => {
-            const div = document.createElement('div');
-            div.style.cssText = 'background: var(--bg-light); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;';
-            div.innerHTML = `
-                <span>${file.name}</span>
-                <span style="color: var(--text-light);">${(file.size / 1024).toFixed(1)} KB</span>
-            `;
-            filesDiv.appendChild(div);
-        });
-    }
-
-    async function processBatch() {
-        document.getElementById('batchResults').style.display = 'block';
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Processing images...</p></div>';
-        
-        resultsDiv.innerHTML = '';
-        for(let i=0;i<3;i++) resultsDiv.innerHTML += `<div class="skeleton" style="height:70px;margin-bottom:12px;"></div>`;
-        results = [];
-        
-        for (let i = 0; i < selectedFiles.length; i++) {
-            const file = selectedFiles[i];
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    results.push({
-                        filename: file.name,
-                        breed: data.predictions[0].breed,
-                        confidence: data.predictions[0].confidence
-                    });
-                }
-            } catch (err) {
-                results.push({
-                    filename: file.name,
-                    breed: 'Error',
-                    confidence: 0
-                });
-            }
+    for (let i = 0; i < total; i++) {
+        document.getElementById('progressText').textContent = `${i + 1} / ${total}`;
+        document.getElementById('progressBar').style.width = `${((i + 1) / total) * 100}%`;
+        const fd = new FormData();
+        fd.append('file', selectedFiles[i]);
+        try {
+            const res  = await fetch('/predict', { method: 'POST', body: fd });
+            const data = await res.json();
+            batchResults.push({
+                filename:   selectedFiles[i].name,
+                breed:      data.success ? data.predictions[0].breed : 'Error',
+                confidence: data.success ? data.predictions[0].confidence : 0
+            });
+        } catch {
+            batchResults.push({ filename: selectedFiles[i].name, breed: 'Error', confidence: 0 });
         }
-        
-        displayResults();
-        showToast(`Processed ${results.length} image(s)!`, 'success');
     }
 
-    function displayResults() {
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = '';
-        
-        results.forEach(r => {
-            const div = document.createElement('div');
-            div.style.cssText = 'background: var(--bg-light); padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid var(--primary);';
-            div.innerHTML = `
-                <div style="font-weight: bold; color: var(--text-dark); margin-bottom: 5px;">${r.filename}</div>
-                <div style="color: var(--primary); font-size: 1.1em;">${r.breed.replace(/_/g, ' ')} - ${r.confidence}%</div>
-            `;
-            resultsDiv.appendChild(div);
-        });
-    }
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('batchResults').style.display = 'block';
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+    batchResults.forEach(r => {
+        resultsDiv.innerHTML += `<div style="background:var(--bg-light); padding:14px 18px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border);">
+            <div>
+                <div style="font-weight:600; color:var(--text-dark);">${r.filename}</div>
+                <div style="color:var(--text-light); font-size:0.85em; margin-top:2px;">${r.breed.replace(/_/g,' ')}</div>
+            </div>
+            <span style="background:var(--primary); color:white; padding:4px 12px; border-radius:20px; font-weight:600; font-size:0.9em;">${r.confidence}%</span>
+        </div>`;
+    });
+    showToast(`Processed ${total} image(s)!`, 'success');
+}
 
-    function downloadResults() {
-        let csv = 'Filename,Breed,Confidence\n';
-        results.forEach(r => {
-            csv += `${r.filename},${r.breed},${r.confidence}\n`;
-        });
-        
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'batch_results.csv';
-        a.click();
-    }
+function downloadCSV() {
+    let csv = 'Filename,Breed,Confidence\n';
+    batchResults.forEach(r => { csv += `${r.filename},${r.breed},${r.confidence}\n`; });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'batch_results.csv';
+    a.click();
+}
 </script>
 {% endblock %}

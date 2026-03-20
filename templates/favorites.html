@@ -1,48 +1,46 @@
 {% extends "base.html" %}
-
 {% block title %}Favorites{% endblock %}
 
 {% block content %}
-<h1 style="text-align: center; color: white; margin-bottom: 30px;">⭐ My Favorites</h1>
+<h2 style="color:var(--text-dark); margin-bottom:20px;">❤️ My Favorites</h2>
 
 <div class="card">
     {% if breeds %}
-        <div class="grid grid-4">
-            {% for breed, info in breeds.items() %}
-            <div style="background: linear-gradient(135deg, var(--bg-light) 0%, rgba(102, 126, 234, 0.05) 100%); padding: 25px; border-radius: 15px; text-align: center; border: 2px solid var(--primary); position: relative;">
-                <button onclick="removeFavorite('{{ breed }}')" style="position: absolute; top: 10px; right: 10px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 1.2em;">×</button>
-                <h3 style="color: var(--primary); margin-bottom: 10px;">{{ breed.replace('_', ' ') }}</h3>
-                <p style="color: var(--text-light); font-size: 0.9em; margin: 5px 0;">📍 {{ info.origin }}</p>
-                <p style="color: var(--text-dark); font-weight: bold; margin: 5px 0;">🥛 {{ info.milk_yield }}</p>
-                <p style="color: var(--primary); font-size: 0.9em;">{{ info.type }}</p>
-            </div>
-            {% endfor %}
+    <div class="grid grid-4">
+        {% for breed, info in breeds.items() %}
+        <div style="position:relative;">
+            <a href="/breed/{{ breed }}" class="breed-card" style="display:flex;">
+                <div class="breed-card-icon">🐄</div>
+                <div class="breed-card-name">{{ breed.replace('_', ' ') }}</div>
+                <div class="breed-card-origin">{{ info.origin }}</div>
+                <div class="breed-card-badge breed-type-{{ info.type.replace(' ', '-') }}">{{ info.type }}</div>
+                <div class="breed-card-milk">🥛 {{ info.milk_yield }}</div>
+            </a>
+            <button onclick="removeFav('{{ breed }}')" style="position:absolute; top:8px; right:8px; background:#e63946; color:white; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer; font-size:0.85em; line-height:1;">×</button>
         </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <div style="text-align: center; padding: 60px 20px;">
-            <div style="font-size: 4em; margin-bottom: 20px;">⭐</div>
-            <h2 style="color: var(--text-dark); margin-bottom: 10px;">No favorites yet</h2>
-            <p style="color: var(--text-light); margin-bottom: 20px;">Start adding breeds to your favorites from the search page</p>
-            <a href="/search" class="btn btn-primary">Browse Breeds</a>
-        </div>
+    <div style="text-align:center; padding:60px 20px;">
+        <div style="font-size:4em; margin-bottom:16px;">❤️</div>
+        <h3 style="color:var(--text-dark); margin-bottom:8px;">No favorites yet</h3>
+        <p style="color:var(--text-light); margin-bottom:20px;">Browse breeds and save your favorites</p>
+        <a href="/search" class="btn btn-primary">Browse Breeds →</a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    function removeFavorite(breed) {
-        fetch('/toggle-favorite', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({breed: breed})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            }
-        });
-    }
+function removeFav(breed) {
+    fetch('/toggle-favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ breed })
+    }).then(r => r.json()).then(d => {
+        if (d.success) { showToast('Removed from favorites', 'info'); setTimeout(() => location.reload(), 800); }
+    });
+}
 </script>
 {% endblock %}
