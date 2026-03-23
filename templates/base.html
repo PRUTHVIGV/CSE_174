@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cattle Breed Recognition{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -25,6 +28,7 @@
             <a href="/suggest" class="nav-link">💡 Suggest</a>
             <a href="/profile" class="nav-link">👤 {{ session.user.name }}</a>
             <a href="/logout" class="nav-link logout">{{ t.logout }}</a>
+            <button id="installBtn" onclick="installPWA()" style="display:none; background:var(--accent); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.82em; font-weight:600;">📲 Install</button>
             <div class="lang-switcher">
                 <select onchange="setLang(this.value)" title="Language">
                     <option value="en" {% if session.lang == 'en' or not session.lang %}selected{% endif %}>🇬🇧 EN</option>
@@ -49,6 +53,36 @@
     {% block scripts %}{% endblock %}
 
     <script>
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+    }
+
+    // PWA install prompt
+    let _deferredPrompt;
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        _deferredPrompt = e;
+        const btn = document.getElementById('installBtn');
+        if (btn) btn.style.display = 'inline-block';
+    });
+    function installPWA() {
+        if (!_deferredPrompt) return;
+        _deferredPrompt.prompt();
+        _deferredPrompt.userChoice.then(() => { _deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'u') { e.preventDefault(); window.location.href = '/'; }
+            if (e.key === 'h') { e.preventDefault(); window.location.href = '/history'; }
+            if (e.key === 'd') { e.preventDefault(); window.location.href = '/dashboard'; }
+            if (e.key === 'k') { e.preventDefault(); window.location.href = '/search'; }
+        }
+    });
+
     fetch('/api/stats').then(r => r.json()).then(d => {
         if (d.total_predictions > 0) {
             const b = document.getElementById('historyBadge');

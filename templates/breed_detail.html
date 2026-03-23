@@ -46,6 +46,18 @@
     </div>
 </div>
 
+<!-- Health Tips -->
+<div class="card">
+    <h3 style="color:var(--text-dark); margin-bottom:16px;">💉 Health Tips for {{ breed_name.replace('_', ' ') }}</h3>
+    <div id="healthTips" class="grid grid-3"></div>
+</div>
+
+<!-- Keyboard shortcut hint -->
+<div style="text-align:center; color:var(--text-light); font-size:0.8em; margin-top:10px; padding-bottom:10px;">
+    Tip: Press <kbd style="background:var(--bg-light); padding:2px 6px; border-radius:4px; border:1px solid var(--border);">Ctrl+U</kbd> to upload &nbsp;·&nbsp;
+    <kbd style="background:var(--bg-light); padding:2px 6px; border-radius:4px; border:1px solid var(--border);">Ctrl+H</kbd> for history
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -63,6 +75,16 @@ fetch(`/similar-breeds/${breedName}`).then(r => r.json()).then(s => {
         a.textContent = b.name.replace(/_/g, ' ');
         list.appendChild(a);
     });
+});
+
+fetch(`/api/health-tips/${breedName}`).then(r => r.json()).then(d => {
+    const el = document.getElementById('healthTips');
+    el.innerHTML = d.tips.map(tip =>
+        `<div style="background:var(--bg-light); padding:16px; border-radius:10px; border:1px solid var(--border); border-left:4px solid #2d6a4f;">
+            <span style="font-size:1.2em;">✅</span>
+            <span style="color:var(--text-dark); font-size:0.9em; margin-left:8px;">${tip}</span>
+        </div>`
+    ).join('');
 });
 
 function toggleFav() {

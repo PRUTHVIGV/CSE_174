@@ -136,18 +136,33 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-@app.route('/google-login', methods=['POST'])
-def google_login():
-    return jsonify({'success': True, 'redirect': '/google-auth'})
-
-@app.route('/google-auth')
-def google_auth():
-    return render_template('google_auth.html')
-
 @app.route('/google-authenticate', methods=['POST'])
 def google_authenticate():
     data = request.json
-    session['user'] = {'email': data['email'], 'name': data['name']}
+    credential = data.get('credential')
+
+    if credential:
+        # Real GSI JWT flow
+        try:
+            import base64 as _b64
+            payload_b64 = credential.split('.')[1]
+            payload_b64 += '=' * (4 - len(payload_b64) % 4)
+            payload = json.loads(_b64.urlsafe_b64decode(payload_b64))
+            email = payload.get('email', '')
+            name  = payload.get('name', email.split('@')[0])
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    else:
+        # Demo flow (no real Client ID configured)
+        email = data.get('email', '').strip()
+        name  = data.get('name', '').strip() or email.split('@')[0]
+
+    if not email:
+        return jsonify({'success': False, 'error': 'No email provided'}), 400
+
+    if not get_user(email):
+        save_user(email, name, hash_password(email + app.secret_key))
+    session['user'] = {'email': email, 'name': name}
     return jsonify({'success': True})
 
 @app.route('/history')
@@ -703,6 +718,33 @@ def set_language():
     if lang in TRANSLATIONS:
         session['lang'] = lang
     return jsonify({'success': True})
+
+CATTLE_FACTS = [
+    "Cows have a nearly 360-degree panoramic vision.",
+    "A cow produces about 200,000 glasses of milk in its lifetime.",
+    "Cows can smell odors up to 6 miles away.",
+    "The Gir breed is known for its disease resistance and heat tolerance.",
+    "Murrah buffalo produces the highest fat-content milk among buffalo breeds.",
+    "Holstein Friesian is the world's highest milk-producing cattle breed.",
+    "Vechur is the world's smallest cattle breed, native to Kerala.",
+    "Sahiwal is considered the best dairy breed among zebu cattle.",
+    "Cows have four stomach compartments for digesting grass.",
+    "The Ongole breed is exported to Brazil and is popular worldwide.",
+    "Kankrej cattle are known for their speed and are used in races.",
+    "Jersey cows produce milk with the highest butterfat content among dairy breeds.",
+    "Tharparkar is a dual-purpose breed that thrives in arid conditions.",
+    "Murrah buffalo contributes over 70% of India's total buffalo milk production.",
+    "The Hallikar breed was historically used by Mysore kings for war chariots."
+]
+
+@app.route('/api/health-tips/<breed_name>')
+def api_health_tips(breed_name):
+    tips = HEALTH_TIPS.get(breed_name, HEALTH_TIPS['default'])
+    return jsonify({'tips': tips})
+
+@app.route('/api/random-fact')
+def random_fact():
+    return jsonify({'fact': random.choice(CATTLE_FACTS)})
 
 @app.route('/location-breeds')
 def location_breeds():

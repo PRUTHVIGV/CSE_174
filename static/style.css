@@ -435,6 +435,29 @@ input:focus, select:focus {
     .card { box-shadow: none !important; border: 1px solid #ddd !important; }
 }
 
+/* ── Fact ticker animation ── */
+@keyframes factFade {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+#factText { animation: factFade 0.4s ease; }
+
+/* ── Keyboard shortcut kbd ── */
+kbd {
+    background: var(--bg-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    font-family: monospace;
+    font-size: 0.85em;
+    color: var(--text-dark);
+}
+
+/* ── PWA install button ── */
+#installBtn {
+    animation: fadeIn 0.4s ease;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
     .navbar { padding: 0 16px; flex-wrap: wrap; height: auto; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
