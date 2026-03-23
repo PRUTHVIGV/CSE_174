@@ -9,8 +9,12 @@ from datetime import datetime, date
 import random
 import pickle
 import numpy as np
-from history import add_prediction, get_user_history
-from favorites import add_favorite, remove_favorite, get_user_favorites, is_favorite
+from database import (init_db, save_user, get_user, load_users, update_user_avatar, update_user_password, delete_user,
+    add_prediction, get_user_history, clear_user_history, get_all_history,
+    add_favorite, remove_favorite, get_user_favorites, is_favorite,
+    add_feedback, get_user_feedback, get_all_feedback,
+    log_search, get_search_counts, save_share, get_share, save_suggestion)
+from translations import get_translation, get_breeds_by_state, TRANSLATIONS
 
 app = Flask(__name__)
 app.secret_key = 'cattle-breed-secret-key-2024'
@@ -20,19 +24,9 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 # Create uploads folder
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-USERS_FILE = 'users.json'
-FEEDBACK_FILE = 'feedback.json'
 BREED_OF_DAY_FILE = 'breed_of_day.json'
-SEARCH_LOG_FILE = 'search_log.json'
 
-def log_search(breed):
-    logs = {}
-    if os.path.exists(SEARCH_LOG_FILE):
-        with open(SEARCH_LOG_FILE, 'r') as f:
-            logs = json.load(f)
-    logs[breed] = logs.get(breed, 0) + 1
-    with open(SEARCH_LOG_FILE, 'w') as f:
-        json.dump(logs, f, indent=2)
+init_db()
 
 HEALTH_TIPS = {
     "Gir": ["Vaccinate against FMD every 6 months", "Provide 15-20L water daily", "Deworm every 3 months"],
@@ -54,16 +48,6 @@ if os.path.exists('cattle_model.pkl') and os.path.exists('class_names.txt'):
     print(f"[OK] Loaded model with {len(CLASS_NAMES)} breeds")
 else:
     print("[INFO] No trained model found - using demo mode")
-
-def load_users():
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    return {}
-
-def save_users(users):
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -124,12 +108,10 @@ def login():
         data = request.json
         email = data.get('email')
         password = data.get('password')
-        users = load_users()
-        
-        if email in users and users[email]['password'] == hash_password(password):
-            session['user'] = {'email': email, 'name': users[email]['name']}
+        user = get_user(email)
+        if user and user['password'] == hash_password(password):
+            session['user'] = {'email': email, 'name': user['name']}
             return jsonify({'success': True})
-        
         return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
     
     return render_template('login.html')
@@ -141,17 +123,9 @@ def signup():
         name = data.get('name')
         email = data.get('email')
         password = data.get('password')
-        users = load_users()
-        
-        if email in users:
+        if get_user(email):
             return jsonify({'success': False, 'error': 'Email already exists'}), 400
-        
-        users[email] = {
-            'name': name,
-            'password': hash_password(password),
-            'created_at': datetime.now().isoformat()
-        }
-        save_users(users)
+        save_user(email, name, hash_password(password))
         session['user'] = {'email': email, 'name': name}
         return jsonify({'success': True})
     
@@ -202,15 +176,8 @@ def dashboard():
         'top_breed': max(set(h['breed'] for h in history), key=lambda x: sum(1 for h in history if h['breed'] == x)).replace('_', ' ') if history else 'N/A'
     }
 
-    # Accuracy from feedback
-    accuracy = 'N/A'
-    if os.path.exists(FEEDBACK_FILE):
-        with open(FEEDBACK_FILE, 'r') as f:
-            feedback = json.load(f)
-        user_fb = [f for f in feedback if f['user'] == session['user']['email']]
-        if user_fb:
-            correct = sum(1 for f in user_fb if f['correct'])
-            accuracy = f"{round(correct/len(user_fb)*100)}%"
+    user_fb = get_user_feedback(session['user']['email'])
+    accuracy = f"{round(sum(1 for f in user_fb if f['correct'])/len(user_fb)*100)}%" if user_fb else 'N/A'
     stats['accuracy'] = accuracy
     
     breed_counts = {}
@@ -222,12 +189,7 @@ def dashboard():
         date = h['timestamp'][:10]
         timeline[date] = timeline.get(date, 0) + 1
     
-    # Most searched breeds
-    search_counts = {}
-    if os.path.exists(SEARCH_LOG_FILE):
-        with open(SEARCH_LOG_FILE, 'r') as f:
-            all_searches = json.load(f)
-        search_counts = dict(sorted(all_searches.items(), key=lambda x: x[1], reverse=True)[:8])
+    search_counts = get_search_counts(8)
 
     return render_template('dashboard.html', stats=stats, breed_counts=json.dumps(breed_counts), timeline=json.dumps(timeline), search_counts=json.dumps(search_counts))
 
@@ -241,29 +203,19 @@ def features():
 def leaderboard():
     if 'user' not in session:
         return redirect(url_for('login'))
-    
-    history_file = 'prediction_history.json'
+    all_history = get_all_history()
     all_breed_counts = {}
     user_scores = {}
-    
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            all_history = json.load(f)
-        
-        for email, predictions in all_history.items():
-            user_scores[email] = len(predictions)
-            for p in predictions:
-                breed = p['breed'].replace('_', ' ')
-                all_breed_counts[breed] = all_breed_counts.get(breed, 0) + 1
-    
+    for email, predictions in all_history.items():
+        user_scores[email] = len(predictions)
+        for p in predictions:
+            breed = p['breed'].replace('_', ' ')
+            all_breed_counts[breed] = all_breed_counts.get(breed, 0) + 1
     top_breeds = sorted(all_breed_counts.items(), key=lambda x: x[1], reverse=True)[:10]
     top_users = sorted(user_scores.items(), key=lambda x: x[1], reverse=True)[:10]
-    
     return render_template('leaderboard.html',
-        top_breeds=top_breeds,
-        top_users=top_users,
-        total_predictions=sum(user_scores.values()),
-        total_users=len(user_scores)
+        top_breeds=top_breeds, top_users=top_users,
+        total_predictions=sum(user_scores.values()), total_users=len(user_scores)
     )
 
 @app.route('/batch')
@@ -360,19 +312,7 @@ def export_history():
 def clear_history():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
-    
-    history_file = 'prediction_history.json'
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            all_history = json.load(f)
-        
-        user_email = session['user']['email']
-        if user_email in all_history:
-            all_history[user_email] = []
-        
-        with open(history_file, 'w') as f:
-            json.dump(all_history, f, indent=2)
-    
+    clear_user_history(session['user']['email'])
     return jsonify({'success': True, 'message': 'History cleared'})
 
 @app.route('/batch-predict', methods=['POST'])
@@ -450,9 +390,7 @@ def upload_avatar():
     email = session['user']['email']
     filename = 'avatar_' + hashlib.md5(email.encode()).hexdigest() + '.' + ext
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    users = load_users()
-    users[email]['avatar'] = filename
-    save_users(users)
+    update_user_avatar(email, filename)
     return jsonify({'success': True, 'filename': filename})
 
 @app.route('/uploads/<filename>')
@@ -465,8 +403,7 @@ def profile():
     if 'user' not in session:
         return redirect(url_for('login'))
     user_email = session['user']['email']
-    users = load_users()
-    user_data = users.get(user_email, {})
+    user_data = get_user(user_email) or {}
     history = get_user_history(user_email)
     favs = get_user_favorites(user_email)
     stats = {
@@ -484,12 +421,11 @@ def change_password():
         return redirect(url_for('login'))
     if request.method == 'POST':
         data = request.json
-        users = load_users()
         email = session['user']['email']
-        if users[email]['password'] != hash_password(data.get('current')):
+        user = get_user(email)
+        if user['password'] != hash_password(data.get('current')):
             return jsonify({'success': False, 'error': 'Current password incorrect'}), 400
-        users[email]['password'] = hash_password(data.get('new'))
-        save_users(users)
+        update_user_password(email, hash_password(data.get('new')))
         return jsonify({'success': True})
     return render_template('change_password.html')
 
@@ -497,11 +433,7 @@ def change_password():
 def delete_account():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
-    email = session['user']['email']
-    users = load_users()
-    if email in users:
-        del users[email]
-        save_users(users)
+    delete_user(session['user']['email'])
     session.pop('user', None)
     return jsonify({'success': True})
 
@@ -537,19 +469,7 @@ def submit_feedback():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     data = request.json
-    feedback = []
-    if os.path.exists(FEEDBACK_FILE):
-        with open(FEEDBACK_FILE, 'r') as f:
-            feedback = json.load(f)
-    feedback.append({
-        'user': session['user']['email'],
-        'predicted': data.get('predicted'),
-        'correct': data.get('correct'),
-        'actual': data.get('actual', ''),
-        'timestamp': datetime.now().isoformat()
-    })
-    with open(FEEDBACK_FILE, 'w') as f:
-        json.dump(feedback, f, indent=2)
+    add_feedback(session['user']['email'], data.get('predicted'), data.get('correct'), data.get('actual', ''))
     return jsonify({'success': True})
 
 @app.route('/streak')
@@ -682,24 +602,14 @@ def admin():
     if 'user' not in session or session['user']['email'] != ADMIN_EMAIL:
         return redirect(url_for('index'))
     users = load_users()
-    history_file = 'prediction_history.json'
-    all_history = {}
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            all_history = json.load(f)
-    feedback = []
-    if os.path.exists(FEEDBACK_FILE):
-        with open(FEEDBACK_FILE, 'r') as f:
-            feedback = json.load(f)
+    all_history = get_all_history()
+    feedback = get_all_feedback()
     total_preds = sum(len(v) for v in all_history.values())
     correct_fb = sum(1 for f in feedback if f['correct'])
     accuracy = round(correct_fb / len(feedback) * 100) if feedback else 0
     return render_template('admin.html',
-        users=users,
-        total_preds=total_preds,
-        feedback=feedback[-20:][::-1],
-        accuracy=accuracy,
-        model_loaded=MODEL is not None
+        users=users, total_preds=total_preds,
+        feedback=feedback[:20], accuracy=accuracy, model_loaded=MODEL is not None
     )
 
 @app.route('/admin/retrain', methods=['POST'])
@@ -717,21 +627,16 @@ def admin_retrain():
 def admin_delete_user(email):
     if 'user' not in session or session['user']['email'] != ADMIN_EMAIL:
         return jsonify({'error': 'Unauthorized'}), 403
-    users = load_users()
-    if email in users:
-        del users[email]
-        save_users(users)
+    delete_user(email)
     return jsonify({'success': True})
 
 @app.route('/share/<share_id>')
 def shared_prediction(share_id):
-    share_file = 'shares.json'
-    if os.path.exists(share_file):
-        with open(share_file, 'r') as f:
-            shares = json.load(f)
-        if share_id in shares:
-            data = shares[share_id]
-            return render_template('shared.html', data=data, breeds=BREEDS)
+    data = get_share(share_id)
+    if data:
+        if isinstance(data.get('info'), str):
+            data['info'] = json.loads(data['info'])
+        return render_template('shared.html', data=data, breeds=BREEDS)
     return redirect(url_for('index'))
 
 @app.route('/create-share', methods=['POST'])
@@ -739,21 +644,9 @@ def create_share():
     if 'user' not in session:
         return jsonify({'error': 'Not authenticated'}), 401
     data = request.json
-    share_file = 'shares.json'
-    shares = {}
-    if os.path.exists(share_file):
-        with open(share_file, 'r') as f:
-            shares = json.load(f)
     share_id = hashlib.md5((str(datetime.now()) + data.get('breed','')).encode()).hexdigest()[:8]
-    shares[share_id] = {
-        'breed': data.get('breed'),
-        'confidence': data.get('confidence'),
-        'info': BREEDS.get(data.get('breed'), {}),
-        'user': session['user']['name'],
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M')
-    }
-    with open(share_file, 'w') as f:
-        json.dump(shares, f, indent=2)
+    save_share(share_id, data.get('breed'), data.get('confidence'),
+        json.dumps(BREEDS.get(data.get('breed'), {})), session['user']['name'])
     return jsonify({'success': True, 'share_id': share_id})
 
 @app.route('/quiz')
@@ -772,6 +665,33 @@ def similar_breeds(breed_name):
         if k != breed_name and (v['type'] == breed_info['type'] or v['origin'] == breed_info['origin'])
     ][:4]
     return jsonify({'similar': similar})
+
+@app.context_processor
+def inject_globals():
+    lang = session.get('lang', 'en')
+    return {'t': get_translation(lang), 'current_lang': lang, 'all_langs': TRANSLATIONS}
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('500.html'), 500
+
+@app.route('/set-language', methods=['POST'])
+def set_language():
+    lang = request.json.get('lang', 'en')
+    if lang in TRANSLATIONS:
+        session['lang'] = lang
+    return jsonify({'success': True})
+
+@app.route('/location-breeds')
+def location_breeds():
+    state = request.args.get('state', '')
+    breeds = get_breeds_by_state(state)
+    result = {b: BREEDS[b] for b in breeds if b in BREEDS}
+    return jsonify({'state': state, 'breeds': result})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

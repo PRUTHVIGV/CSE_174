@@ -13,17 +13,25 @@
         <div class="nav-brand">🐄 Cattle Recognition</div>
         <button class="hamburger" onclick="toggleNav()">☰</button>
         <div class="nav-links" id="navLinks">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/search" class="nav-link">🔍 Search</a>
-            <a href="/dashboard" class="nav-link">Dashboard</a>
-            <a href="/history" class="nav-link">History <span id="historyBadge" class="nav-badge" style="display:none"></span></a>
-            <a href="/compare" class="nav-link">Compare</a>
-            <a href="/encyclopedia" class="nav-link">Encyclopedia</a>
-            <a href="/health" class="nav-link">Health</a>
-            <a href="/leaderboard" class="nav-link">Leaderboard</a>
-            <a href="/quiz" class="nav-link">Quiz</a>
+            <a href="/" class="nav-link">{{ t.home }}</a>
+            <a href="/search" class="nav-link">🔍 {{ t.search }}</a>
+            <a href="/dashboard" class="nav-link">{{ t.dashboard }}</a>
+            <a href="/history" class="nav-link">{{ t.history }} <span id="historyBadge" class="nav-badge" style="display:none"></span></a>
+            <a href="/compare" class="nav-link">{{ t.compare }}</a>
+            <a href="/encyclopedia" class="nav-link">{{ t.encyclopedia }}</a>
+            <a href="/health" class="nav-link">{{ t.health }}</a>
+            <a href="/leaderboard" class="nav-link">{{ t.leaderboard }}</a>
+            <a href="/quiz" class="nav-link">{{ t.quiz }}</a>
             <a href="/profile" class="nav-link">👤 {{ session.user.name }}</a>
-            <a href="/logout" class="nav-link logout">Logout</a>
+            <a href="/logout" class="nav-link logout">{{ t.logout }}</a>
+            <div class="lang-switcher">
+                <select onchange="setLang(this.value)" title="Language">
+                    <option value="en" {% if session.lang == 'en' or not session.lang %}selected{% endif %}>🇬🇧 EN</option>
+                    <option value="hi" {% if session.lang == 'hi' %}selected{% endif %}>🇮🇳 HI</option>
+                    <option value="kn" {% if session.lang == 'kn' %}selected{% endif %}>🇮🇳 KN</option>
+                    <option value="ta" {% if session.lang == 'ta' %}selected{% endif %}>🇮🇳 TA</option>
+                </select>
+            </div>
         </div>
     </nav>
     {% endif %}
@@ -49,6 +57,11 @@
 
     function toggleNav() {
         document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    function setLang(lang) {
+        fetch('/set-language', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({lang})})
+        .then(() => location.reload());
     }
     </script>
 </body>
