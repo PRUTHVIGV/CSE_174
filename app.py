@@ -679,6 +679,24 @@ def not_found(e):
 def server_error(e):
     return render_template('500.html'), 500
 
+@app.route('/suggest')
+def suggest():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    from database import get_db
+    conn = get_db()
+    suggestions = [dict(r) for r in conn.execute('SELECT * FROM suggestions ORDER BY id DESC LIMIT 20').fetchall()]
+    conn.close()
+    return render_template('suggest.html', suggestions=suggestions)
+
+@app.route('/submit-suggestion', methods=['POST'])
+def submit_suggestion():
+    if 'user' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    data = request.json
+    save_suggestion(data.get('name'), data.get('category'), data.get('title'), data.get('description'), data.get('priority'))
+    return jsonify({'success': True})
+
 @app.route('/set-language', methods=['POST'])
 def set_language():
     lang = request.json.get('lang', 'en')
