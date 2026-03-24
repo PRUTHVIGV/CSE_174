@@ -26,6 +26,7 @@
             <a href="/leaderboard" class="nav-link">{{ t.leaderboard }}</a>
             <a href="/quiz" class="nav-link">{{ t.quiz }}</a>
             <a href="/suggest" class="nav-link">💡 Suggest</a>
+            <a href="/api/docs" class="nav-link">📡 API</a>
             <a href="/profile" class="nav-link">👤 {{ session.user.name }}</a>
             <a href="/logout" class="nav-link logout">{{ t.logout }}</a>
             <button id="installBtn" onclick="installPWA()" style="display:none; background:var(--accent); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.82em; font-weight:600;">📲 Install</button>
@@ -55,7 +56,7 @@
     <script>
     // Service Worker
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 
     // PWA install prompt

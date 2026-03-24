@@ -709,6 +709,22 @@ def submit_suggestion():
     save_suggestion(data.get('name'), data.get('category'), data.get('title'), data.get('description'), data.get('priority'))
     return jsonify({'success': True})
 
+@app.route('/api/docs')
+def api_docs():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    return render_template('api_docs.html')
+
+@app.route('/sw.js')
+def service_worker():
+    from flask import send_from_directory
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
+@app.route('/manifest.json')
+def manifest():
+    from flask import send_from_directory
+    return send_from_directory('static', 'manifest.json', mimetype='application/json')
+
 @app.route('/set-language', methods=['POST'])
 def set_language():
     lang = request.json.get('lang', 'en')

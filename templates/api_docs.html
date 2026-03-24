@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}API Docs{% endblock %}
+{% block content %}
+<h1 style="color:white;margin-bottom:20px;">📡 REST API Reference</h1>
+
+<div class="card" style="margin-bottom:20px;">
+    <h2 style="color:var(--primary);margin-bottom:5px;">Base URL</h2>
+    <code style="background:var(--bg-light);padding:10px 20px;border-radius:8px;display:block;font-size:1.1em;">{{ request.host_url.rstrip('/') }}</code>
+    <p style="color:var(--text-light);margin-top:10px;">All endpoints require login session except public breed endpoints.</p>
+</div>
+
+{% set endpoints = [
+    ("GET", "/api/breeds", "Get all 41 breeds", '{"breeds": {...}, "total": 41}', "Public"),
+    ("GET", "/api/breed/<name>", "Get single breed info", '{"breed": "Gir", "info": {...}}', "Public"),
+    ("GET", "/api/stats", "Get your prediction stats", '{"total_predictions": 10, "avg_confidence": 82.5}', "Auth"),
+    ("GET", "/api/health-tips/<breed>", "Get health tips for breed", '{"tips": ["tip1", "tip2"]}', "Public"),
+    ("GET", "/api/random-fact", "Get a random cattle fact", '{"fact": "Cows have 360° vision"}', "Public"),
+    ("GET", "/breed-of-day", "Get today's featured breed", '{"breed": "Gir", "info": {...}}', "Public"),
+    ("GET", "/similar-breeds/<name>", "Get similar breeds", '{"similar": [...]}', "Public"),
+    ("GET", "/location-breeds?state=Gujarat", "Get breeds by Indian state", '{"state": "Gujarat", "breeds": {...}}', "Public"),
+    ("GET", "/streak", "Get your daily streak", '{"streak": 5, "total_days": 12}', "Auth"),
+    ("GET", "/export-csv", "Download history as CSV", "CSV file download", "Auth"),
+    ("POST", "/predict", "Predict breed from image", '{"predictions": [...], "image": "base64"}', "Auth"),
+    ("POST", "/toggle-favorite", "Add/remove favorite breed", '{"success": true, "action": "added"}', "Auth"),
+    ("POST", "/submit-feedback", "Submit prediction feedback", '{"success": true}', "Auth"),
+    ("POST", "/set-language", "Set UI language (en/hi/kn/ta)", '{"success": true}', "Auth"),
+    ("POST", "/create-share", "Create shareable prediction link", '{"share_id": "abc123"}', "Auth"),
+] %}
+
+{% for method, path, desc, response, auth in endpoints %}
+<div class="card" style="margin-bottom:15px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+        <span style="background:{% if method=='GET' %}#2d6a4f{% else %}#e67e22{% endif %};color:white;padding:4px 12px;border-radius:6px;font-weight:bold;font-size:0.9em;">{{ method }}</span>
+        <code style="color:var(--primary);font-size:1em;">{{ path }}</code>
+        <span style="background:{% if auth=='Public' %}#27ae60{% else %}#e74c3c{% endif %};color:white;padding:2px 10px;border-radius:10px;font-size:0.8em;">{{ auth }}</span>
+    </div>
+    <p style="color:var(--text-light);margin-bottom:8px;">{{ desc }}</p>
+    <code style="background:var(--bg-light);padding:8px 12px;border-radius:6px;display:block;font-size:0.85em;color:var(--text-dark);">{{ response }}</code>
+</div>
+{% endfor %}
+
+<div class="card">
+    <h2 style="color:var(--primary);margin-bottom:15px;">🌐 Language Codes</h2>
+    <div class="grid grid-4">
+        {% for code, info in all_langs.items() %}
+        <div style="background:var(--bg-light);padding:15px;border-radius:10px;text-align:center;">
+            <div style="font-size:1.5em;">{{ info.flag }}</div>
+            <div style="font-weight:bold;color:var(--text-dark);">{{ code }}</div>
+            <div style="color:var(--text-light);font-size:0.9em;">{{ info.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
