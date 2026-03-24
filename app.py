@@ -114,7 +114,7 @@ def login():
             return jsonify({'success': True})
         return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
     
-    return render_template('login.html')
+    return render_template('login.html', google_client_id=GOOGLE_CLIENT_ID)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -136,30 +136,27 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+
 @app.route('/google-authenticate', methods=['POST'])
 def google_authenticate():
     data = request.json
-    credential = data.get('credential')
-
+    credential = data.get('credential', '')
     if credential:
-        # Real GSI JWT flow
         try:
             import base64 as _b64
             payload_b64 = credential.split('.')[1]
             payload_b64 += '=' * (4 - len(payload_b64) % 4)
             payload = json.loads(_b64.urlsafe_b64decode(payload_b64))
             email = payload.get('email', '')
-            name  = payload.get('name', email.split('@')[0])
+            name = payload.get('name', email.split('@')[0])
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 400
     else:
-        # Demo flow (no real Client ID configured)
         email = data.get('email', '').strip()
-        name  = data.get('name', '').strip() or email.split('@')[0]
-
+        name = data.get('name', '').strip() or email.split('@')[0]
     if not email:
-        return jsonify({'success': False, 'error': 'No email provided'}), 400
-
+        return jsonify({'success': False, 'error': 'No email'}), 400
     if not get_user(email):
         save_user(email, name, hash_password(email + app.secret_key))
     session['user'] = {'email': email, 'name': name}
