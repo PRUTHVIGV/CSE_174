@@ -23,10 +23,18 @@
             <a href="/compare" class="nav-link">{{ t.compare }}</a>
             <a href="/encyclopedia" class="nav-link">{{ t.encyclopedia }}</a>
             <a href="/health" class="nav-link">{{ t.health }}</a>
-            <a href="/leaderboard" class="nav-link">{{ t.leaderboard }}</a>
             <a href="/quiz" class="nav-link">{{ t.quiz }}</a>
-            <a href="/suggest" class="nav-link">💡 Suggest</a>
-            <a href="/api/docs" class="nav-link">📡 API</a>
+            <div class="nav-dropdown">
+                <button class="nav-link dropdown-btn" onclick="toggleDropdown()">More ▾</button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <a href="/leaderboard" class="dropdown-item">🏆 {{ t.leaderboard }}</a>
+                    <a href="/suggest" class="dropdown-item">💡 Suggest</a>
+                    <a href="/api/docs" class="dropdown-item">📡 API Docs</a>
+                    <a href="/features" class="dropdown-item">✨ Features</a>
+                    <a href="/batch" class="dropdown-item">📦 Batch</a>
+                    <a href="/camera" class="dropdown-item">📷 Camera</a>
+                </div>
+            </div>
             <a href="/profile" class="nav-link">👤 {{ session.user.name }}</a>
             <a href="/logout" class="nav-link logout">{{ t.logout }}</a>
             <button id="installBtn" onclick="installPWA()" style="display:none; background:var(--accent); color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.82em; font-weight:600;">📲 Install</button>
@@ -91,6 +99,15 @@
         }
     }).catch(() => {});
 
+    function toggleDropdown() {
+        document.getElementById('dropdownMenu').classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.nav-dropdown')) {
+            const m = document.getElementById('dropdownMenu');
+            if (m) m.classList.remove('open');
+        }
+    });
     function toggleNav() {
         document.getElementById('navLinks').classList.toggle('open');
     }
