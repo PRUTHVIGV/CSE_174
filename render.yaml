@@ -1,15 +1,9 @@
 services:
   - type: web
     name: cattle-breed-recognition
-    env: python
+    runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.7
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-    disk:
-      name: data
-      mountPath: /opt/render/project/src
-      sizeGB: 1
+        value: 3.11.4
