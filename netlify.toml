@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  command = "echo 'This is a Flask app - deploy on Render, not Netlify'"
+
+[[redirects]]
+  from = "/*"
+  to = "https://cattle-breed-recognition.onrender.com/:splat"
+  status = 301
+  force = true
