@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}{{ t.dashboard }}{% endblock %}
 
 {% block content %}
-<h2 style="color:var(--text-dark); margin-bottom:20px;">📊 Dashboard</h2>
+<h2 style="color:var(--text-dark); margin-bottom:20px;">📊 {{ t.dashboard }}</h2>
 
 <div class="grid grid-4" style="margin-bottom:24px;">
     <div class="stat-card">
         <div class="stat-value">{{ stats.total }}</div>
-        <div class="stat-label">Total Predictions</div>
+        <div class="stat-label">{{ t.total_predictions }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-value">{{ stats.avg_confidence }}%</div>
-        <div class="stat-label">Avg Confidence</div>
+        <div class="stat-label">{{ t.avg_confidence }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-value" style="font-size:1.4em;">{{ stats.top_breed }}</div>
-        <div class="stat-label">Most Predicted</div>
+        <div class="stat-label">{{ t.most_predicted }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-value" id="streakVal">—</div>
-        <div class="stat-label">Day Streak 🔥</div>
+        <div class="stat-label">{{ t.day_streak }} 🔥</div>
     </div>
 </div>
 

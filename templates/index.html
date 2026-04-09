@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Home - Cattle Breed Recognition{% endblock %}
+{% block title %}{{ t.home }} - Cattle Breed Recognition{% endblock %}
 
 {% block content %}
 
@@ -12,12 +12,12 @@
 
 <!-- Upload Card -->
 <div class="card">
-    <h2 style="text-align:center; margin-bottom:24px; color:var(--text-dark);">Upload Cattle Image</h2>
+    <h2 style="text-align:center; margin-bottom:24px; color:var(--text-dark);">{{ t.upload_title }}</h2>
 
     <div class="upload-area" id="uploadArea">
         <div style="font-size:3em; margin-bottom:12px;">📸</div>
-        <div style="font-size:1.05em; color:var(--text-dark); font-weight:500;">Click to upload or drag & drop</div>
-        <div style="color:var(--text-light); margin-top:6px; font-size:0.9em;">JPG, PNG — Max 16MB</div>
+        <div style="font-size:1.05em; color:var(--text-dark); font-weight:500;">{{ t.upload_hint }}</div>
+        <div style="color:var(--text-light); margin-top:6px; font-size:0.9em;">{{ t.upload_sub }}</div>
         <input type="file" id="fileInput" accept="image/*" style="display:none;">
     </div>
 
@@ -35,7 +35,7 @@
     <!-- Results -->
     <div id="results" style="display:none; margin-top:32px;">
         <img id="resultImage" style="max-width:360px; border-radius:12px; margin:0 auto 24px; display:block; box-shadow:var(--shadow);">
-        <h3 style="color:var(--text-dark); margin-bottom:16px;">Prediction Results</h3>
+        <h3 style="color:var(--text-dark); margin-bottom:16px;">{{ t.results_title }}</h3>
         <div id="predictions"></div>
         <div id="similarBreeds"></div>
     </div>
@@ -44,12 +44,12 @@
 <!-- Supported Breeds -->
 <div class="card">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-        <h3 style="color:var(--text-dark);">Supported Breeds <span style="color:var(--text-light); font-weight:400; font-size:0.85em;">({{ breeds|length }})</span></h3>
+        <h3 style="color:var(--text-dark);">{{ t.supported_breeds }} <span style="color:var(--text-light); font-weight:400; font-size:0.85em;">({{ breeds|length }})</span></h3>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button onclick="filterBreeds('all')"    class="filter-btn active" id="f-all">All</button>
-            <button onclick="filterBreeds('Dairy')"  class="filter-btn" id="f-Dairy">🥛 Dairy</button>
-            <button onclick="filterBreeds('Draught')" class="filter-btn" id="f-Draught">💪 Draught</button>
-            <button onclick="filterBreeds('Dual Purpose')" class="filter-btn" id="f-Dual Purpose">⚡ Dual</button>
+            <button onclick="filterBreeds('all')"          class="filter-btn active" id="f-all">{{ t.all }}</button>
+            <button onclick="filterBreeds('Dairy')"        class="filter-btn" id="f-Dairy">🥛 {{ t.dairy }}</button>
+            <button onclick="filterBreeds('Draught')"      class="filter-btn" id="f-Draught">💪 {{ t.draught }}</button>
+            <button onclick="filterBreeds('Dual Purpose')" class="filter-btn" id="f-Dual Purpose">⚡ {{ t.dual }}</button>
         </div>
     </div>
     <div id="breedsGrid" class="grid grid-4">
@@ -69,7 +69,7 @@
 <div class="card" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px 28px;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
-            <div style="font-size:0.8em; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">🌟 Breed of the Day</div>
+            <div style="font-size:0.8em; opacity:0.8; text-transform:uppercase; letter-spacing:1px;">🌟 {{ t.breed_of_day }}</div>
             <div id="botdName" style="font-size:1.6em; font-weight:700; margin-top:4px;">Loading...</div>
             <div id="botdInfo" style="opacity:0.85; margin-top:4px; font-size:0.9em;"></div>
         </div>
@@ -81,6 +81,17 @@
 
 {% block scripts %}
 <script>
+const LANG = {
+    origin:       "{{ t.origin }}",
+    type:         "{{ t.type }}",
+    milk:         "{{ t.milk }}",
+    was_correct:  "{{ t.was_correct }}",
+    yes:          "{{ t.yes }}",
+    no:           "{{ t.no }}",
+    share:        "{{ t.share }}",
+    similar:      "{{ t.similar_breeds }}"
+};
+
 const uploadArea = document.getElementById('uploadArea');
 const fileInput  = document.getElementById('fileInput');
 const loading    = document.getElementById('loading');
@@ -130,8 +141,17 @@ function checkImageQuality(file) {
 
 function makeRing(pct) {
     const r = 28, c = 2 * Math.PI * r, fill = (pct / 100) * c;
-    const color = pct >= 70 ? '#2d6a4f' : pct >= 50 ? '#f4a261' : '#e63946';
-    return `<div class="confidence-ring"><svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--bg-light)" stroke-width="7"/><circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-dasharray="${fill} ${c}" stroke-linecap="round"/></svg><div class="ring-text">${pct}%</div></div>`;
+    const color = pct >= 70 ? 'var(--primary)' : pct >= 50 ? '#f4a261' : '#e63946';
+    return `
+        <div style="position:relative; width:72px; height:72px; flex-shrink:0;">
+            <svg width="72" height="72" viewBox="0 0 72 72" style="transform:rotate(-90deg);">
+                <circle cx="36" cy="36" r="${r}" fill="none" stroke="var(--bg-light)" stroke-width="7"/>
+                <circle cx="36" cy="36" r="${r}" fill="none" stroke="${color}" stroke-width="7"
+                    stroke-dasharray="${fill} ${c}" stroke-linecap="round"/>
+            </svg>
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+                font-weight:700; font-size:0.85em; color:${color};">${pct}%</div>
+        </div>`;
 }
 
 async function handleFile() {
@@ -160,15 +180,15 @@ async function handleFile() {
 
             data.predictions.forEach((pred, idx) => {
                 const div = document.createElement('div');
-                div.style.cssText = `background:var(--bg-light); padding:18px 20px; border-radius:10px; margin-bottom:12px; border-left:4px solid var(--${idx === 0 ? 'primary' : 'accent'}); display:flex; justify-content:space-between; align-items:center; gap:16px;`;
+                div.style.cssText = `background:var(--bg-light); padding:18px 20px; border-radius:10px; margin-bottom:12px; border-left:4px solid ${idx === 0 ? 'var(--primary)' : 'var(--accent)'}; display:flex; justify-content:space-between; align-items:center; gap:16px;`;
                 const warning = pred.confidence < 50 ? `<div class="confidence-warning">⚠️ Low confidence — result may be inaccurate</div>` : '';
                 div.innerHTML = `
-                    <div style="flex:1">
+                    <div style="flex:1; min-width:0;">
                         <div style="font-size:1.2em; font-weight:700; color:var(--text-dark);">${pred.breed.replace(/_/g, ' ')}</div>
                         <div style="color:var(--text-light); font-size:0.88em; margin-top:5px; line-height:1.6;">
-                            <strong>Origin:</strong> ${pred.info.origin} &nbsp;·&nbsp;
-                            <strong>Type:</strong> ${pred.info.type} &nbsp;·&nbsp;
-                            <strong>Milk:</strong> ${pred.info.milk_yield}
+                            <strong>${LANG.origin}:</strong> ${pred.info.origin} &nbsp;·&nbsp;
+                            <strong>${LANG.type}:</strong> ${pred.info.type} &nbsp;·&nbsp;
+                            <strong>${LANG.milk}:</strong> ${pred.info.milk_yield}
                         </div>
                         ${warning}
                     </div>
@@ -182,21 +202,19 @@ async function handleFile() {
 
             predsEl.insertAdjacentHTML('beforeend', `
                 <div style="margin-top:14px; padding:16px; background:var(--bg-light); border-radius:10px; border:1px solid var(--border);">
-                    <div style="font-weight:600; color:var(--text-dark); margin-bottom:10px;">Was this prediction correct?</div>
+                    <div style="font-weight:600; color:var(--text-dark); margin-bottom:10px;">${LANG.was_correct}</div>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <button onclick="sendFeedback('${topBreed}', true)"  style="background:var(--primary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">✅ Yes</button>
-                        <button onclick="sendFeedback('${topBreed}', false)" style="background:#e63946;color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">❌ No</button>
-                        <button onclick="shareResult('${topBreed}', ${topConf})" style="background:var(--secondary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">🔗 Share</button>
+                        <button onclick="sendFeedback('${topBreed}', true)"  style="background:var(--primary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">✅ ${LANG.yes}</button>
+                        <button onclick="sendFeedback('${topBreed}', false)" style="background:#e63946;color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">❌ ${LANG.no}</button>
+                        <button onclick="shareResult('${topBreed}', ${topConf})" style="background:var(--secondary);color:white;border:none;padding:7px 18px;border-radius:7px;cursor:pointer;font-size:0.9em;">🔗 ${LANG.share}</button>
                     </div>
                     <div id="feedbackMsg" style="margin-top:8px; color:var(--text-light); font-size:0.85em;"></div>
                 </div>
             `);
 
-            window._lastImage = data.image;
-
             fetch(`/similar-breeds/${topBreed}`).then(r => r.json()).then(s => {
                 if (!s.similar.length) return;
-                let html = '<div style="margin-top:20px"><h4 style="color:var(--text-dark);margin-bottom:12px;">Similar Breeds</h4><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+                let html = `<div style="margin-top:20px"><h4 style="color:var(--text-dark);margin-bottom:12px;">${LANG.similar}</h4><div style="display:flex;flex-wrap:wrap;gap:8px;">`;
                 s.similar.forEach(b => { html += `<a href="/breed/${b.name}" class="breed-pill">${b.name.replace(/_/g,' ')}</a>`; });
                 html += '</div></div>';
                 document.getElementById('similarBreeds').innerHTML = html;

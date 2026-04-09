@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Compare Breeds{% endblock %}
+{% block title %}{{ t.compare }}{% endblock %}
 
 {% block content %}
-<h1 style="text-align: center; color: white; margin-bottom: 30px;">🔄 Breed Comparison</h1>
+<h2 style="color:var(--text-dark); margin-bottom:20px;">🔄 {{ t.compare }}</h2>
 
 <div class="card">
     <div class="grid grid-3" style="margin-bottom: 20px;">
@@ -67,15 +67,15 @@
             div.style.cssText = 'background: var(--bg-light); padding: 30px; border-radius: 15px;';
             div.innerHTML = `
                 <h2 style="color: var(--primary); margin-bottom: 20px; text-align: center;">${breed.replace(/_/g, ' ')}</h2>
-                <div style="background: var(--white); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                     <div style="font-weight: bold; color: var(--text-light);">Origin</div>
                     <div style="color: var(--text-dark); font-size: 1.1em;">${data.origin}</div>
                 </div>
-                <div style="background: var(--white); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <div style="background: var(--bg-card); padding: 15px; border-radius: 10px; margin-bottom: 10px;">
                     <div style="font-weight: bold; color: var(--text-light);">Type</div>
                     <div style="color: var(--text-dark); font-size: 1.1em;">${data.type}</div>
                 </div>
-                <div style="background: var(--white); padding: 15px; border-radius: 10px;">
+                <div style="background: var(--bg-card); padding: 15px; border-radius: 10px;">
                     <div style="font-weight: bold; color: var(--text-light);">Milk Yield</div>
                     <div style="color: var(--text-dark); font-size: 1.1em;">${data.milk_yield}</div>
                 </div>

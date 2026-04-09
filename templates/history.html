@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}History{% endblock %}
+{% block title %}{{ t.history }}{% endblock %}
 
 {% block content %}
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-    <h2 style="color:var(--text-dark);">📜 Prediction History</h2>
+    <h2 style="color:var(--text-dark);">📜 {{ t.history }}</h2>
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <span id="streakBadge" class="streak-badge">🔥 Loading...</span>
         <a href="/export-csv" class="btn btn-primary" style="font-size:0.85em; padding:8px 16px;">📊 CSV</a>
